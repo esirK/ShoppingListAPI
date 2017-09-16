@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db
@@ -10,6 +12,7 @@ class User(db.Model):
     email = db.Column(db.String(64), unique=True, index=True)
     password = db.Column(db.String(104))
     shopping_lists = db.relationship('ShoppingList', backref='owner', lazy='dynamic')
+    joined_on = db.Column(db.DateTime(), default=datetime.utcnow)
 
     def __init__(self, username, email, password):
         self.username = username

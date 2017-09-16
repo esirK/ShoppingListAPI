@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from app import db
 
 
@@ -7,6 +9,7 @@ class ShoppingList(db.Model):
     name = db.Column(db.String(64))
     description = db.Column(db.String(180))
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_on = db.Column(db.DateTime(), default=datetime.utcnow)
 
     def __init__(self, name, description, owner):
         self.name = name
