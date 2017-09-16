@@ -1,7 +1,11 @@
+import os
+
+
 class Config(object):
     DEBUG = False
     TESTING = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SECRET_KEY = os.environ.get('SECRET_KEY', "wireless")
 
 
 class ProductionConfig(Config):
@@ -15,6 +19,7 @@ class DevelopmentConfig(Config):
 
 
 class TestingConfig(Config):
+    DEBUG = True
     TESTING = True
 
 
