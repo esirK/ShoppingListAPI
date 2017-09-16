@@ -9,6 +9,7 @@ class ShoppingList(db.Model):
     name = db.Column(db.String(64))
     description = db.Column(db.String(180))
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    items = db.relationship('Item', backref='container', lazy='dynamic')
     created_on = db.Column(db.DateTime(), default=datetime.utcnow)
 
     def __init__(self, name, description, owner):
