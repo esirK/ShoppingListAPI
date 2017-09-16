@@ -37,18 +37,20 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password, password)
 
-    def generate_auth_token(self, expiration=600):
-        s = Serializer(config["development"].SECRET_KEY, expires_in=expiration)
+    def generate_auth_token(self, expiration=600, configurations=""):
+        s = Serializer(config[configurations].SECRET_KEY, expires_in=expiration)
         return s.dumps({'id': self.id})
 
     @staticmethod
-    def verify_auth_token(token):
-        s = Serializer(config["development"].SECRET_KEY)
+    def verify_auth_token(token, configuration):
+        s = Serializer(config[configuration].SECRET_KEY)
         try:
             data = s.loads(token)
         except SignatureExpired:
-            return None  # valid token, but expired
+            from app.exceptions import TokenExpired
+            raise TokenExpired  # valid token, but expired
         except BadSignature:
-            return None  # invalid token
+            from app.exceptions import InvalidToken
+            raise InvalidToken  # invalid token
         user = User.query.get(data['id'])
         return user
