@@ -13,7 +13,7 @@ before_script:
 
 script:
   - nosetests -v
-  - nosetests --with-coverage --cover-inclusive
+  - nosetests --with-coverage --cover-inclusive --cover-package=app
   - "coveralls"
 
 after_sucess:
