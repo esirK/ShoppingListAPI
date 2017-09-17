@@ -21,8 +21,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     DEBUG = True
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:1994@localhost' \
-                              '/shopping_list_testing'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DB')
 
 
 config = {
