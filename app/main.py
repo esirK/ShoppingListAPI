@@ -1,14 +1,15 @@
 import os
 
-from flask import g, jsonify, request, url_for
+from flask import g, jsonify, request, url_for, Blueprint
 from werkzeug.exceptions import abort
 from flask_httpauth import HTTPBasicAuth
 
-from app import create_app, db
+from app import db
 from app.models.user import User
 
 auth = HTTPBasicAuth()
-app = create_app(os.environ.get('CURRENT_CONFIG'))
+
+api = Blueprint('api', __name__)
 
 
 @auth.verify_password
@@ -24,12 +25,13 @@ def verify_password(email_or_token, password):
     return True
 
 
-@app.route('/api/1_0/register', methods=['POST'])
+@api.route('/register', methods=['POST'])
 def add_user():
     """Route for creating a new User"""
-    username = request.json.get('username')
-    password = request.json.get('password')
-    email = request.json.get('email')
+    result = request.get_json()
+    username = result['username']
+    password = result['password']
+    email = result['email']
     if email is None or password is None or username is None:
         abort(400)  # missing arguments
     if User.query.filter_by(email=email).first() is not None:
@@ -38,10 +40,10 @@ def add_user():
     db.session.add(user)
     db.session.commit()
     return jsonify({'username': user.username}), 201, \
-           {'Location': url_for('add_user', id=user.id, _external=True)}
+           {'Location': url_for('api.add_user', id=user.id, _external=True)}
 
 
-@app.route('/api/1_0/token')
+@api.route('/token')
 @auth.login_required
 def get_auth_token():
     token = g.user.generate_auth_token(600)
