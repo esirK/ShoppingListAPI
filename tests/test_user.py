@@ -47,7 +47,7 @@ class TestUser(unittest.TestCase):
 
         from app.exceptions import TokenExpired, InvalidToken
         with self.assertRaises(InvalidToken):
-            user.verify_auth_token("tok2",
+            user.verify_auth_token("very_invalid_token",
                                    configuration=self.configurations)
         with self.assertRaises(TokenExpired):
             user.verify_auth_token(tok1,
