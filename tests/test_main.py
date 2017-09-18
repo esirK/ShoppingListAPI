@@ -99,6 +99,23 @@ class TestMain(unittest.TestCase):
                                     content_type='application/json')
         self.assertIn("Invalid Password", response.data.decode())
 
+    def test_update_account(self):
+        """
+        Test If Account Is Updated Successfully
+        """
+        res = self.client.get("/api/1_0/token", headers=self.headers)
+        token = json.loads(res.data)['token']
+        token_headers = {
+            'Authorization': 'Basic %s' % b64encode(bytes(token + ':', "utf-8")).decode("ascii")
+        }
+        response = self.client.post("/api/1_0/update_account",
+                                    data=json.dumps({"username": "EsirMkundi0",
+                                                     "password": "python",
+                                                     "email": "tinyrick@gmail.com"
+                                                     }),
+                                    content_type='application/json', headers=token_headers)
+        self.assertIn("Details Updated Successfully", response.data.decode())
+
 
 if __name__ == '__main__':
     unittest.main()
