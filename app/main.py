@@ -46,6 +46,27 @@ def add_user():
            {'Location': url_for('api.add_user', id=user.id, _external=True)}
 
 
+@api.route('/login', methods=['POST'])
+def login():
+    """
+    A route to allow a user to login to the shoppinglist app
+    """
+    result = request.get_json()
+    email = result['email']
+    password = result['password']
+    if email is None or password is None:
+        abort(400)  # missing arguments
+    user = User.query.filter_by(email=email).first()
+    if user:
+        if user.check_password(password):
+            g.user = user
+            return jsonify({user.username: 'Loggedin'})
+        else:
+            return jsonify({"Invalid": 'Invalid Password'})
+    else:
+        return jsonify({"User": 'Does Not Exists'})
+
+
 @api.route('/token')
 @auth.login_required
 def get_auth_token():
