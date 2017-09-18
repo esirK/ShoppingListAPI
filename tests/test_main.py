@@ -65,6 +65,40 @@ class TestMain(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertIn("token", res.data.decode())
 
+    def test_user_login(self):
+        """
+        Test if A User Can Login With credentials he/she used to register with 
+        """
+        response = self.client.post("/api/1_0/login",
+                                    data=json.dumps({"password": "python",
+                                                     "email": "tinyrick@gmail.com"
+                                                     }),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Loggedin", response.data.decode())
+
+    def test_un_registered_user_cannot_login(self):
+        """
+        Test if A non User Can Login 
+        """
+        response = self.client.post("/api/1_0/login",
+                                    data=json.dumps({"password": "python",
+                                                     "email": "pickerick@gmail.com"
+                                                     }),
+                                    content_type='application/json')
+        self.assertIn("Does Not Exists", response.data.decode())
+
+    def test_invalid_password(self):
+        """
+        Test Invalid Password Can Not Be used to login 
+        """
+        response = self.client.post("/api/1_0/login",
+                                    data=json.dumps({"password": "y_python",
+                                                     "email": "tinyrick@gmail.com"
+                                                     }),
+                                    content_type='application/json')
+        self.assertIn("Invalid Password", response.data.decode())
+
 
 if __name__ == '__main__':
     unittest.main()
