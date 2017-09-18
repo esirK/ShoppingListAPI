@@ -3,6 +3,7 @@ import os
 from flask import g, jsonify, request, url_for, Blueprint
 from werkzeug.exceptions import abort
 from flask_httpauth import HTTPBasicAuth
+from werkzeug.security import generate_password_hash
 
 from app import db
 from app.exceptions import InvalidToken, TokenExpired
@@ -65,6 +66,26 @@ def login():
             return jsonify({"Invalid": 'Invalid Password'})
     else:
         return jsonify({"User": 'Does Not Exists'})
+
+
+@api.route('/update_account', methods=['POST', 'GET'])
+@auth.login_required
+def update_account():
+    """
+    User Can change their username, email or password here
+    """
+    result = request.get_json()
+    username = result['username']
+    password = result['password']
+    email = result['email']
+    if email is None or password is None or username is None:
+        abort(400)  # missing arguments
+    user = User.query.filter_by(email=g.user.email).first()
+    user.email = email
+    user.username = username
+    user.password = generate_password_hash(password)
+    db.session.commit()
+    return jsonify({"Update": "Details Updated Successfully"})
 
 
 @api.route('/token')
