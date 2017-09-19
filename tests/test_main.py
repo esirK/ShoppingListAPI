@@ -15,8 +15,9 @@ class TestMain(unittest.TestCase):
             db.drop_all()
             db.create_all()
             self.headers = {
-                'Authorization': 'Basic %s' % b64encode(b"tinyrick@gmail.com:python")
-                    .decode("ascii")
+                'Authorization': 'Basic %s' %
+                                 b64encode(b"tinyrick@gmail.com:python")
+                                     .decode("ascii")
             }
             self.client.post("/api/1_0/register",
                              data=json.dumps({"username": "tinyrick",
@@ -24,6 +25,13 @@ class TestMain(unittest.TestCase):
                                               "email": "tinyrick@gmail.com"
                                               }),
                              content_type='application/json')
+            res = self.client.get("/api/1_0/token", headers=self.headers)
+            token = json.loads(res.data)['token']
+            self.token_headers = {
+                'Authorization': 'Basic %s'
+                                 % b64encode(bytes(token + ':', "utf-8"))
+                                     .decode("ascii")
+            }
 
     def test_user_registration(self):
         """Test if a user is created using the api"""
@@ -55,19 +63,14 @@ class TestMain(unittest.TestCase):
         """
         Test if user is authenticated using a valid token
         """
-        res = self.client.get("/api/1_0/token", headers=self.headers)
-        token = json.loads(res.data)['token']
-        token_headers = {
-            'Authorization': 'Basic %s' % b64encode(bytes(token + ':', "utf-8")).decode("ascii")
-        }
-        res = self.client.get("/api/1_0/token", headers=token_headers)
+        res = self.client.get("/api/1_0/token", headers=self.token_headers)
         """Accessing Secure endpoint using a token"""
         self.assertEqual(res.status_code, 200)
         self.assertIn("token", res.data.decode())
 
     def test_user_login(self):
         """
-        Test if A User Can Login With credentials he/she used to register with 
+        Test if A User Can Login With credentials he/she used to register with
         """
         response = self.client.post("/api/1_0/login",
                                     data=json.dumps({"password": "python",
@@ -103,18 +106,48 @@ class TestMain(unittest.TestCase):
         """
         Test If Account Is Updated Successfully
         """
-        res = self.client.get("/api/1_0/token", headers=self.headers)
-        token = json.loads(res.data)['token']
-        token_headers = {
-            'Authorization': 'Basic %s' % b64encode(bytes(token + ':', "utf-8")).decode("ascii")
-        }
         response = self.client.post("/api/1_0/update_account",
                                     data=json.dumps({"username": "EsirMkundi0",
                                                      "password": "python",
                                                      "email": "tinyrick@gmail.com"
                                                      }),
-                                    content_type='application/json', headers=token_headers)
+                                    content_type='application/json',
+                                    headers=self.token_headers)
         self.assertIn("Details Updated Successfully", response.data.decode())
+
+    def test_create_shopping_list(self):
+        response = self.client.post("/api/1_0/create_shopping_list",
+                                    data=
+                                    json.dumps({"name": "Shopping List Ya Mum",
+                                                "description":
+                                                    "Things to "
+                                                    "buy for mum on december"
+                                                }),
+                                    content_type='application/json',
+                                    headers=self.token_headers)
+        self.assertIn("ShoppingList Added Successfully",
+                      response.data.decode())
+
+    def test_user_cannot_create_more_than_one_similar_shopping_lists(self):
+        self.client.post("/api/1_0/create_shopping_list",
+                         data=json.dumps({
+                             "name": "Shopping List Ya Mum",
+                             "description":
+                                 "Things to "
+                                 "buy for mum on december"}),
+                         content_type='application/json',
+                         headers=self.token_headers)
+        response = self.client.post("/api/1_0/create_shopping_list",
+                                    data=json.dumps({
+                                        "name":
+                                            "Shopping List Ya Mum",
+                                        "description":
+                                            "Things to "
+                                            "buy for mum on december"
+                                    }),
+                                    content_type='application/json',
+                                    headers=self.token_headers)
+        self.assertIn("ShoppingList Already Exists", response.data.decode())
 
 
 if __name__ == '__main__':
