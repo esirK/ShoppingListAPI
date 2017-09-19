@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash
 
 from app import db
 from app.exceptions import InvalidToken, TokenExpired
+from app.models import ShoppingList
 from app.models.user import User
 
 auth = HTTPBasicAuth()
@@ -88,8 +89,31 @@ def update_account():
     return jsonify({"Update": "Details Updated Successfully"})
 
 
+@api.route('/create_shopping_list', methods=['POST'])
+@auth.login_required
+def create_shopping_list():
+    """ 
+    This Method adds a shopping_list into current user's shopping lists
+    """
+    result = request.get_json()
+    name = result['name']
+    description = result['description']
+
+    shopping_lists = ShoppingList.query.filter_by(name=name).all()
+
+    for shopping_lst in shopping_lists:
+        if shopping_lst.owner_id == g.user.id:
+            return jsonify({shopping_lst.name: "ShoppingList Already Exists"})
+    shoppingList = ShoppingList(name=name, description=description,
+                                owner=g.user)
+    db.session.add(shoppingList)
+    db.session.commit()
+    return jsonify({shoppingList.name: "ShoppingList Added Successfully"})
+
+
 @api.route('/token')
 @auth.login_required
 def get_auth_token():
-    token = g.user.generate_auth_token(configurations=configuration, expiration=600)
+    token = g.user.generate_auth_token(configurations=configuration,
+                                       expiration=600)
     return jsonify({'token': token.decode('ascii'), 'duration': 600})
