@@ -50,6 +50,16 @@ class TestMain(unittest.TestCase):
                                               "email": "esimka@gmail.com"
                                               }),
                              content_type='application/json').data.decode())
+        response_no_arg = self.client.post("/api/1_0/register",
+                                           data=json.dumps({"username": "esirick",
+                                                            "password": "python",
+                                                            "email": "  "
+                                                            }),
+                                           content_type='application/json')
+        """
+        Test if no arguments are passed the service aborts
+        """
+        self.assertEqual(400, response_no_arg.status_code)
 
     def test_verify_password(self):
         """
@@ -114,6 +124,18 @@ class TestMain(unittest.TestCase):
                                     content_type='application/json',
                                     headers=self.token_headers)
         self.assertIn("Details Updated Successfully", response.data.decode())
+        """
+        Test if no arguments are passed the service aborts
+        """
+
+        response_no_arg = self.client.post("/api/1_0/update_account",
+                                           data=json.dumps({"username": "Esik",
+                                                            "password": "  ",
+                                                            "email": "tinyrick@gmail.com"
+                                                            }),
+                                           content_type='application/json',
+                                           headers=self.token_headers)
+        self.assertEqual(400, response_no_arg.status_code)
 
     def test_create_shopping_list(self):
         response = self.client.post("/api/1_0/create_shopping_list",
@@ -127,6 +149,17 @@ class TestMain(unittest.TestCase):
                                     headers=self.token_headers)
         self.assertIn("ShoppingList Added Successfully",
                       response.data.decode())
+        """
+        Test if no arguments are passed the service aborts
+        """
+        response_no_args = self.client.post("/api/1_0/create_shopping_list",
+                                            data=
+                                            json.dumps({"name": "Shopping List Ya Mum",
+                                                        "description": ""
+                                                        }),
+                                            content_type='application/json',
+                                            headers=self.token_headers)
+        self.assertEqual(400, response_no_args.status_code)
 
     def test_user_cannot_create_more_than_one_similar_shopping_lists(self):
         self.client.post("/api/1_0/create_shopping_list",

@@ -34,10 +34,11 @@ def verify_password(email_or_token, password):
 def add_user():
     """Route for creating a new User"""
     result = request.get_json()
-    username = result['username']
-    password = result['password']
-    email = result['email']
-    if email is None or password is None or username is None:
+    username = result.get('username', " ")
+    password = result.get('password', " ")
+    email = result.get('email', " ")
+    if email.isspace() or len(email) == 0 or password.isspace() \
+            or len(password) == 0 or username.isspace() or len(username) == 0:
         abort(400)  # missing arguments
     if User.query.filter_by(email=email).first() is not None:
         return jsonify({email: 'Already Exists'})  # existing user
@@ -56,7 +57,9 @@ def login():
     result = request.get_json()
     email = result['email']
     password = result['password']
-    if email is None or password is None:
+
+    if email.isspace() or len(email) == 0 or \
+            password.isspace() or len(password) == 0:
         abort(400)  # missing arguments
     user = User.query.filter_by(email=email).first()
     if user:
@@ -76,10 +79,11 @@ def update_account():
     User Can change their username, email or password here
     """
     result = request.get_json()
-    username = result['username']
-    password = result['password']
-    email = result['email']
-    if email is None or password is None or username is None:
+    username = result.get('username', " ")
+    password = result.get('password', " ")
+    email = result.get('email', " ")
+    if email.isspace() or len(email) == 0 or password.isspace()\
+            or len(password) == 0 or username.isspace() or len(username) == 0:
         abort(400)  # missing arguments
     user = User.query.filter_by(email=g.user.email).first()
     user.email = email
@@ -96,8 +100,11 @@ def create_shopping_list():
     This Method adds a shopping_list into current user's shopping lists
     """
     result = request.get_json()
-    name = result['name']
-    description = result['description']
+    name = result.get('name')
+    description = result.get('description')
+    if name.isspace() or len(name) == 0 or description.isspace()\
+            or len(description) == 0:
+            abort(400)  # missing arguments
 
     shopping_lists = ShoppingList.query.filter_by(name=name).all()
 
