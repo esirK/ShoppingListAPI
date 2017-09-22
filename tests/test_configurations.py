@@ -14,7 +14,7 @@ class TestConfig(unittest.TestCase):
         """Test For Configurations Required For Development"""
         self.assertTrue(self.dev_config.DEBUG is True)
         self.assertTrue(
-            self.dev_config.SQLALCHEMY_DATABASE_URI == os.environ.get('DEVDB'))
+            self.dev_config.SQLALCHEMY_DATABASE_URI == os.environ.get('DB'))
         self.assertFalse(self.dev_config.SECRET_KEY is 'wireless')
 
     def test_testing_config(self):

@@ -9,18 +9,18 @@ class Config(object):
 
 
 class ProductionConfig(Config):
-    DATABASE_URI = 'mysql://user@localhost/foo'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('PRODUCTIONDB')
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DEVDB')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DB')
 
 
 class TestingConfig(Config):
     DEBUG = True
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DB')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('TESTDB')
 
 
 config = {
