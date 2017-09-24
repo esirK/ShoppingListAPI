@@ -79,6 +79,58 @@ class TestMain(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertIn("token", res.data.decode())
 
+    def test_user_login(self):
+        """
+        Test If A Registered User Can Login to the app using registration
+         credentials
+        """
+        self.client.post(
+            "/v_1/register",
+            data=json.dumps({"name": "esirick",
+                             "password": "morty",
+                             "email": "mortymorty@gmail.com"
+                             }),
+            content_type='application/json')
+        response = self.client.post(
+            "/v_1/login",
+            data=json.dumps({
+                "password": "morty",
+                "email": "mortymorty@gmail.com"
+            }),
+            content_type='application/json')
+        self.assertEqual(200, response.status_code)
+        assert b'username' in response.data
+
+    def test_user_can_not_login_with_invalid_creds(self):
+        """
+        Test If A Registered User Can Login to the app using
+        Invalid Credentials
+         """
+        response = self.client.post(
+            "/v_1/login",
+            data=json.dumps({
+                "password": "morty",
+                "email": "tinyrick@gmail.com"
+            }),
+            content_type='application/json')
+        self.assertEqual(401, response.status_code)
+        assert b'Wrong Credentials' in response.data
+
+    def test_un_registered_user_can_not_login(self):
+        """
+        Test If a Un Registered User Can Login to the app
+         """
+        response = self.client.post(
+            "/v_1/login",
+            data=json.dumps({
+                "password": "morty",
+                "email": "notregistered@gmail.com"
+            }),
+            content_type='application/json')
+        self.assertEqual(401, response.status_code)
+        assert b'No User Registered With' in response.data
+
+
 
 if __name__ == '__main__':
     unittest.main()
