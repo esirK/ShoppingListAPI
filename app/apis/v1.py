@@ -1,7 +1,7 @@
 import os
 
 from flask import g, jsonify, Blueprint
-from flask_restplus import Resource, reqparse, inputs, Api, Namespace
+from flask_restplus import Resource, reqparse, inputs, Api, Namespace, fields, marshal
 from flask_httpauth import HTTPBasicAuth
 
 from app import db
@@ -20,6 +20,21 @@ api = Api(bp, version='1.0', title='ShoppingList API',
 
 ns = Namespace('api', description='Endpoints for accessing '
                                   'shoppingList App Resources')
+
+registration_model = ns.model('registration_args', {
+    'email': fields.String(required=True, default="user@example.com"),
+    'name': fields.String(required=True, default="username"),
+    'password': fields.String(required=True, default="password")
+})
+login_model = ns.model('login_args', {
+    'email': fields.String(required=True, default="user.example.com"),
+    'password': fields.String(required=True, default="password")
+})
+
+user_model = ns.model('Model', {
+    'username': fields.String(default="username"),
+    'email': fields.String(default="user@example.com"),
+})
 
 
 @auth.verify_password
@@ -43,19 +58,19 @@ def verify_password(email_or_token, password):
     return True
 
 
-parser = reqparse.RequestParser()
+master_parser = reqparse.RequestParser()
+master_parser.add_argument('email', type=inputs.email(), required=True,
+                           help='Email Of User Being Registered')
+master_parser.add_argument('password', type=str, required=True,
+                           help='Password Of User Being Registered')
+parser = master_parser.copy()
 parser.add_argument('name', type=str, required=True,
                     help='Username Of User Being Registered')
-parser.add_argument('email', type=inputs.email(), required=True,
-                    help='Email Of User Being Registered')
-parser.add_argument('password', type=str, required=True,
-                    help='Password Of User Being Registered')
 
 
 @ns.route("/register")
+@ns.expect(registration_model)
 class AppUsers(Resource):
-    @api.doc(parser=parser)
-    @api.expect(parser)
     @api.response(201, "User Registered Successfully")
     @api.response(409, "User Already Exists")
     def post(self):
@@ -74,6 +89,32 @@ class AppUsers(Resource):
         response = jsonify({'message': user.username + " Created Successfully"})
         response.status_code = 201
         return response
+
+
+@ns.route("/login")
+@ns.expect(login_model)
+class AppUser(Resource):
+    @api.response(401, "Unknown User or Invalid Credentials")
+    def post(self):
+        """
+        Login a User Using email and Password
+        """
+        args = master_parser.parse_args()
+        email = args['email']
+        password = args['password']
+        user = User.query.filter_by(email=email).first()
+        if user:
+            # User Found Check Password
+            if user.check_password(password):
+                return marshal(user, user_model)
+            else:
+                response = jsonify({'message': "Wrong Credentials "})
+                response.status_code = 401
+                return response
+        else:
+            response = jsonify({'message': "No User Registered With " + email})
+            response.status_code = 401
+            return response
 
 
 @ns.route("/token")
