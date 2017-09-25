@@ -1,10 +1,12 @@
 import os
 
 from flask import g, jsonify, Blueprint
-from flask_restplus import Resource, reqparse, inputs, Api, Namespace, fields, marshal
+from flask_restplus import Resource, Api, Namespace, fields, marshal
 from flask_httpauth import HTTPBasicAuth
 
+from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_parser, item_parser
 from app.exceptions import InvalidToken, TokenExpired
+from app.models import ShoppingList
 from app.models.user import User
 
 auth = HTTPBasicAuth()
@@ -39,6 +41,18 @@ user_model = ns.model('Model', {
     'email': fields.String(default="user@example.com"),
 })
 
+shopping_list_model = ns.model('shopping_list_model', {
+    'name': fields.String(default="Name"),
+    'description': fields.String(default="Short description..."),
+})
+
+item_model = ns.model('item_model', {
+    'name': fields.String(default="Name"),
+    'price': fields.String(default="Price"),
+    'quantity': fields.String(default="Quantity"),
+    'shopping_list_name': fields.String(default="ShoppingList Name "),
+})
+
 
 @auth.verify_password
 def verify_password(email_or_token, password):
@@ -59,23 +73,6 @@ def verify_password(email_or_token, password):
             return False
     g.user = user
     return True
-
-
-master_parser = reqparse.RequestParser()
-master_parser.add_argument('email', type=inputs.email(), required=True,
-                           help='Email Of User Being Registered')
-master_parser.add_argument('password', type=str, required=True,
-                           help='Password Of User Being Registered')
-
-parser = master_parser.copy()
-parser.add_argument('name', type=str, required=True,
-                    help='Username Of User Being Registered')
-
-update_parser = reqparse.RequestParser()
-update_parser.add_argument('name', type=str, required=True,
-                           help='Username')
-update_parser.add_argument('password', type=str, required=True,
-                           help='Password')
 
 
 @ns.route("/register")
@@ -131,13 +128,38 @@ class AppUser(Resource):
     @api.response(200, "User Credentials Updated Successfully")
     def put(self):
         """
-        A Logged in user can edit his/her credentials
+        edit Account credentials
         """
         args = update_parser.parse_args()
         username = args['name']
         password = args['password']
         User.update_user(g.user, username=username, password=password)
         return marshal(g.user, user_model)
+
+
+@ns.route("/shoppinglists")
+class ShoppingLists(Resource):
+    @api.response(201, "ShoppingList Added Successfully")
+    @api.response(409, "ShoppingList Already Exist")
+    @ns.expect(shopping_list_model)
+    @auth.login_required
+    def post(self):
+        """
+        Add a ShoppingList
+        """
+        args = shoppinglist_parser.parse_args()
+        name = args['name']
+        description = args['description']
+        if g.user.add_shopping_list(name=name, description=description):
+            response = jsonify({'message': "Shoppinglist " + name
+                                           + " Created Successfully"})
+            response.status_code = 201
+            return response
+        else:
+            response = jsonify({'message': "Shoppinglist " + name
+                                           + " Already Exists"})
+            response.status_code = 409
+            return response
 
 
 @ns.route("/token")
