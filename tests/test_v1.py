@@ -181,5 +181,63 @@ class TestMain(unittest.TestCase):
         self.assertEqual(401, response.status_code)
         assert b'Unauthorized Access' in response.data
 
+    def test_shopping_list_item_created_successfully(self):
+        """
+        Test a Logged In User Can Add items to their shopping_lists
+        """
+        self.client.post(
+            "/v_1/shoppinglists",
+            data=json.dumps({
+                "name": "School",
+                "description": "Short Description About Back To School"
+            }),
+            content_type='application/json', headers=self.headers)
+        response = self.client.post(
+            "/v_1/shoppinglist_items",
+            data=json.dumps({
+                "name": "Skuma",
+                "price": "10",
+                "quantity": "2",
+                "shopping_list_name": "School"
+            }
+            ),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(200, response.status_code)
+
+    def test_shopping_list_not_found_returned(self):
+        """
+        Test 404 is returned on attempt to add items on non existing shoppinglist 
+        :return: 
+        """
+        response = self.client.post(
+            "/v_1/shoppinglist_items",
+            data=json.dumps({
+                "name": "Amazing Woman",
+                "price": "150",
+                "quantity": "2",
+                "shopping_list_name": "Movies"
+            }
+            ),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(404, response.status_code)
+
+    def test_un_authenticated_users_cannot_add_items(self):
+        """
+        Test non registered users not allowed to add shoppinglist items 
+        """
+        response = self.client.post(
+            "/v_1/shoppinglist_items",
+            data=json.dumps({
+                "name": "Amazing Woman",
+                "price": "150",
+                "quantity": "2",
+                "shopping_list_name": "Movies"
+            }
+            ),
+            content_type='application/json')
+        self.assertEqual(401, response.status_code)
+        assert b'Unauthorized Access' in response.data
+
+
 if __name__ == '__main__':
     unittest.main()
