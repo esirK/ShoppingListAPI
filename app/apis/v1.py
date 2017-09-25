@@ -162,6 +162,38 @@ class ShoppingLists(Resource):
             return response
 
 
+@ns.route("/shoppinglist_items")
+class Items(Resource):
+    @api.response(201, "Item Added Successfully")
+    @api.response(404, "ShoppingList Not Found")
+    @ns.expect(item_model)
+    @auth.login_required
+    def post(self):
+        """
+        Add a ShoppingList item
+        """
+        args = item_parser.parse_args()
+        name = args['name']
+        price = args['price']
+        quantity = args['quantity']
+        shopping_list_name = args['shopping_list_name']
+        # get shoppinglist from db
+        shopping_lists = ShoppingList.query.filter_by(name=shopping_list_name).all()
+        for shopping_list in shopping_lists:
+            if shopping_list.owner_id == g.user.id:
+                # obtain shopping list specific to this user
+                shopping_list.add_item(name=name, price=price,
+                                       quantity=quantity,
+                                       shoppinglist_id=shopping_list)
+                response = jsonify({'message': "Item " + name
+                                               + " Added Successfully"})
+                return response
+        response = jsonify({'message': "Shoppinglist " + shopping_list_name
+                                       + " Not Found"})
+        response.status_code = 404
+        return response
+
+
 @ns.route("/token")
 class GetAuthToken(Resource):
     decorators = [auth.login_required]

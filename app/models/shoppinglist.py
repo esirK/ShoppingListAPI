@@ -17,3 +17,12 @@ class ShoppingList(db.Model):
         self.name = name
         self.description = description
         self.owner_id = owner.id
+
+    def add_item(self, name, price, quantity, shoppinglist_id):
+        """
+        Adds an item to the current shoppinglist
+        """
+        item = Item(name=name, price=price, quantity=quantity,
+                    shoppinglist=shoppinglist_id)
+        db.session.add(item)
+        db.session.commit()

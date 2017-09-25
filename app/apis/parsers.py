@@ -23,3 +23,13 @@ shoppinglist_parser.add_argument('name', type=str, required=True,
 shoppinglist_parser.add_argument('description', type=str, required=True,
                                  help='Shoppinglist description')
 
+item_parser = reqparse.RequestParser()
+item_parser.add_argument('name', type=str, required=True,
+                         help='Item Name')
+
+item_parser.add_argument('price', type=int, required=True,
+                         help='Item Price')
+item_parser.add_argument('quantity', type=int, required=True,
+                         help='Item Quantity')
+item_parser.add_argument('shopping_list_name', type=str, required=True,
+                         help='Shoppinglist(Name) to add item to')
