@@ -11,3 +11,9 @@ class InvalidToken(Exception):
     """
     pass
 
+
+class UserAlreadyExist(Exception):
+    """
+    This Will be raised incases where a user already exist in the db 
+    """
+    pass

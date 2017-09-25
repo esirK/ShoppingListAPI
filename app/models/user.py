@@ -1,9 +1,12 @@
 from datetime import datetime
 
+import sqlalchemy
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired, BadSignature
+from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db, config
+from app.exceptions import UserAlreadyExist
 from app.models.shoppinglist import ShoppingList
 
 
@@ -40,6 +43,24 @@ class User(db.Model):
     def generate_auth_token(self, expiration=600, configurations=""):
         s = Serializer(config[configurations].SECRET_KEY, expires_in=expiration)
         return s.dumps({'id': self.id})
+
+    def save_user(self):
+        """
+        Adds current user into the Database
+        """
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except sqlalchemy.exc.IntegrityError:
+            raise UserAlreadyExist
+        return True
+
+    def update_user(self, username, password):
+        """
+        Updates A user Data. For account management
+        """
+        self.password = password
+        self.username = username
 
     @staticmethod
     def verify_auth_token(token, configuration):

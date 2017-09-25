@@ -4,7 +4,6 @@ from flask import g, jsonify, Blueprint
 from flask_restplus import Resource, reqparse, inputs, Api, Namespace, fields, marshal
 from flask_httpauth import HTTPBasicAuth
 
-from app import db
 from app.exceptions import InvalidToken, TokenExpired
 from app.models.user import User
 
@@ -30,9 +29,13 @@ login_model = ns.model('login_args', {
     'email': fields.String(required=True, default="user.example.com"),
     'password': fields.String(required=True, default="password")
 })
+update_model = ns.model('update_args', {
+    'name': fields.String(required=True, default="username"),
+    'password': fields.String(required=True, default="password")
+})
 
 user_model = ns.model('Model', {
-    'username': fields.String(default="username"),
+    'name': fields.String(default="username"),
     'email': fields.String(default="user@example.com"),
 })
 
@@ -63,9 +66,16 @@ master_parser.add_argument('email', type=inputs.email(), required=True,
                            help='Email Of User Being Registered')
 master_parser.add_argument('password', type=str, required=True,
                            help='Password Of User Being Registered')
+
 parser = master_parser.copy()
 parser.add_argument('name', type=str, required=True,
                     help='Username Of User Being Registered')
+
+update_parser = reqparse.RequestParser()
+update_parser.add_argument('name', type=str, required=True,
+                           help='Username')
+update_parser.add_argument('password', type=str, required=True,
+                           help='Password')
 
 
 @ns.route("/register")
@@ -84,16 +94,15 @@ class AppUsers(Resource):
             response.status_code = 409
             return response  # existing user
         user = User(email=email, username=username, password=password)
-        db.session.add(user)
-        db.session.commit()
+        user.save_user()
         response = jsonify({'message': user.username + " Created Successfully"})
         response.status_code = 201
         return response
 
 
-@ns.route("/login")
-@ns.expect(login_model)
+@ns.route("/user")
 class AppUser(Resource):
+    @ns.expect(login_model)
     @api.response(401, "Unknown User or Invalid Credentials")
     def post(self):
         """
@@ -106,6 +115,7 @@ class AppUser(Resource):
         if user:
             # User Found Check Password
             if user.check_password(password):
+                g.user = user
                 return marshal(user, user_model)
             else:
                 response = jsonify({'message': "Wrong Credentials "})
@@ -115,6 +125,19 @@ class AppUser(Resource):
             response = jsonify({'message': "No User Registered With " + email})
             response.status_code = 401
             return response
+
+    @ns.expect(update_model)
+    @auth.login_required
+    @api.response(200, "User Credentials Updated Successfully")
+    def put(self):
+        """
+        A Logged in user can edit his/her credentials
+        """
+        args = update_parser.parse_args()
+        username = args['name']
+        password = args['password']
+        User.update_user(g.user, username=username, password=password)
+        return marshal(g.user, user_model)
 
 
 @ns.route("/token")

@@ -10,11 +10,12 @@ class TestMain(unittest.TestCase):
     configurations = "testing"
     app = create_app(configurations)
     app.app_context().push()
+    # create all tables
     db.drop_all()
     db.create_all()
 
     def setUp(self):
-        self.client = self.app.test_client()  # create all tables
+        self.client = self.app.test_client()
         self.headers = {
             'Authorization': 'Basic %s' %
                              b64encode(b"tinyrick@gmail.com:python")
@@ -92,7 +93,7 @@ class TestMain(unittest.TestCase):
                              }),
             content_type='application/json')
         response = self.client.post(
-            "/v_1/login",
+            "/v_1/user",
             data=json.dumps({
                 "password": "morty",
                 "email": "mortymorty@gmail.com"
@@ -107,7 +108,7 @@ class TestMain(unittest.TestCase):
         Invalid Credentials
          """
         response = self.client.post(
-            "/v_1/login",
+            "/v_1/user",
             data=json.dumps({
                 "password": "morty",
                 "email": "tinyrick@gmail.com"
@@ -121,7 +122,7 @@ class TestMain(unittest.TestCase):
         Test If a Un Registered User Can Login to the app
          """
         response = self.client.post(
-            "/v_1/login",
+            "/v_1/user",
             data=json.dumps({
                 "password": "morty",
                 "email": "notregistered@gmail.com"
@@ -129,7 +130,6 @@ class TestMain(unittest.TestCase):
             content_type='application/json')
         self.assertEqual(401, response.status_code)
         assert b'No User Registered With' in response.data
-
 
 
 if __name__ == '__main__':
