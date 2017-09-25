@@ -62,6 +62,20 @@ class User(db.Model):
         self.password = password
         self.username = username
 
+    def add_shopping_list(self, name, description):
+        """
+        Adds a ShoppingList to this user account
+        """
+        shopping_list = ShoppingList(name=name, description=description,
+                                     owner=self)
+        shopping_lsts = ShoppingList.query.filter_by(name=name).all()
+        for shopping_lst in shopping_lsts:
+            if shopping_lst.owner_id == self.id:
+                return False
+        db.session.add(shopping_list)
+        db.session.commit()
+        return True
+
     @staticmethod
     def verify_auth_token(token, configuration):
         s = Serializer(config[configuration].SECRET_KEY)

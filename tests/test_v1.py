@@ -131,6 +131,55 @@ class TestMain(unittest.TestCase):
         self.assertEqual(401, response.status_code)
         assert b'No User Registered With' in response.data
 
+    def test_add_shopping_list(self):
+        """
+        Test a Logged in User can add a shopping list into his/her account
+        """
+        response = self.client.post(
+            "/v_1/shoppinglists",
+            data=json.dumps({
+                "name": "Soko",
+                "description": "Short Description About Soko"
+            }),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(201, response.status_code)
+        assert b'Created Successfully' in response.data
+
+    def test_shopping_list_name_is_unique(self):
+        """
+        Test shopping_list cannot be added more than once
+        """
+        response = self.client.post(
+            "/v_1/shoppinglists",
+            data=json.dumps({
+                "name": "Sons Birthday",
+                "description": "Short Description About Sons Birthday"
+            }),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(201, response.status_code)
+
+        response2 = self.client.post(
+            "/v_1/shoppinglists",
+            data=json.dumps({
+                "name": "Sons Birthday",
+                "description": "Short Description About Sons Birthday"
+            }),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(409, response2.status_code)
+
+    def test_unauthenticated_user_cannot_creat_shopping_list(self):
+        """
+        Test a non Logged in User can not add a shopping list
+        """
+        response = self.client.post(
+            "/v_1/shoppinglists",
+            data=json.dumps({
+                "name": "Soko",
+                "description": "Short Description About Soko"
+            }),
+            content_type='application/json')
+        self.assertEqual(401, response.status_code)
+        assert b'Unauthorized Access' in response.data
 
 if __name__ == '__main__':
     unittest.main()
