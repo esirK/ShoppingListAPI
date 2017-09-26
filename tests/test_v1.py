@@ -181,6 +181,43 @@ class TestMain(unittest.TestCase):
         self.assertEqual(401, response.status_code)
         assert b'Unauthorized Access' in response.data
 
+    def test_update_shopping_list(self):
+        """
+        Test a Logged in User can Update his/her shopping lists
+        """
+        self.client.post(
+            "/v_1/shoppinglists",
+            data=json.dumps({
+                "name": "Movies",
+                "description": "Shopping list for weekend movies"
+            }),
+            content_type='application/json', headers=self.headers)
+        response = self.client.put(
+            "/v_1/shoppinglists",
+            data=json.dumps({
+                "name": "Movies",
+                "new_name": "Series",
+                "description": "None"
+            }),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(200, response.status_code)
+        assert b'Updated Successfully' in response.data
+
+    def test_update_of_non_existing_shopping_list_fails(self):
+        """
+        Test a Logged in User can not Update a non existing shopping lists
+        """
+        response = self.client.put(
+            "/v_1/shoppinglists",
+            data=json.dumps({
+                "name": "I Don't Exist",
+                "new_name": "I Exist",
+                "description": "None"
+            }),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(409, response.status_code)
+        assert b'Does not Exists' in response.data
+
     def test_shopping_list_item_created_successfully(self):
         """
         Test a Logged In User Can Add items to their shopping_lists
@@ -203,6 +240,40 @@ class TestMain(unittest.TestCase):
             ),
             content_type='application/json', headers=self.headers)
         self.assertEqual(201, response.status_code)
+
+    def test_existing_shopping_list_item_can_not_be_created(self):
+        """
+        Test a Logged In User Can not Add an item more than once to 
+        their shopping_lists
+        """
+        self.client.post(
+            "/v_1/shoppinglists",
+            data=json.dumps({
+                "name": "Party",
+                "description": "Short Description About Party Shopping List"
+            }),
+            content_type='application/json', headers=self.headers)
+        self.client.post(
+            "/v_1/shoppinglist_items",
+            data=json.dumps({
+                "name": "Beer",
+                "price": "250",
+                "quantity": "24",
+                "shopping_list_name": "Party"
+            }
+            ),
+            content_type='application/json', headers=self.headers)
+        response = self.client.post(
+            "/v_1/shoppinglist_items",
+            data=json.dumps({
+                "name": "Beer",
+                "price": "250",
+                "quantity": "24",
+                "shopping_list_name": "Party"
+            }
+            ),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(409, response.status_code)
 
     def test_shopping_list_not_found_returned(self):
         """
