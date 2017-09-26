@@ -202,7 +202,7 @@ class TestMain(unittest.TestCase):
             }
             ),
             content_type='application/json', headers=self.headers)
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(201, response.status_code)
 
     def test_shopping_list_not_found_returned(self):
         """
