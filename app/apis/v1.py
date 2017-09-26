@@ -4,7 +4,8 @@ from flask import g, jsonify, Blueprint
 from flask_restplus import Resource, Api, Namespace, fields, marshal
 from flask_httpauth import HTTPBasicAuth
 
-from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_parser, item_parser
+from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_parser, item_parser, \
+    update_shoppinglist_parser
 from app.exceptions import InvalidToken, TokenExpired
 from app.models import ShoppingList
 from app.models.user import User
@@ -44,6 +45,12 @@ user_model = ns.model('Model', {
 shopping_list_model = ns.model('shopping_list_model', {
     'name': fields.String(default="Name"),
     'description': fields.String(default="Short description..."),
+})
+
+update_shopping_list_model = ns.model('update_shopping_list_model', {
+    'name': fields.String(default="Shopping List name"),
+    'new_name': fields.String(default="New name"),
+    'description': fields.String(default="None"),
 })
 
 item_model = ns.model('item_model', {
@@ -158,6 +165,34 @@ class ShoppingLists(Resource):
         else:
             response = jsonify({'message': "Shoppinglist " + name
                                            + " Already Exists"})
+            response.status_code = 409
+            return response
+
+    @api.response(200, "ShoppingList Updated Successfully")
+    @api.response(409, "ShoppingList Does not Exist")
+    @ns.expect(update_shopping_list_model)
+    @auth.login_required
+    def put(self):
+        """
+        Updates a shopping list 
+        """
+        args = update_shoppinglist_parser.parse_args()
+        name = args['name']
+        new_name = args['new_name']
+        description = args['description']
+
+        # Get shopping list
+        shopping_list = ShoppingList.query.filter_by(name=name).first()
+        if shopping_list is not None:
+            # We got the shopping list. Now Update it
+            shopping_list.update_shopping_list(new_name, description)
+            response = jsonify({'message': "Shoppinglist " + name
+                                           + " Updated Successfully"})
+            response.status_code = 200
+            return response
+        else:
+            response = jsonify({'message': "Shoppinglist " + name
+                                           + " Does not Exists"})
             response.status_code = 409
             return response
 

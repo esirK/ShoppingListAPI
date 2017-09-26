@@ -18,6 +18,17 @@ class ShoppingList(db.Model):
         self.description = description
         self.owner_id = owner.id
 
+    def update_shopping_list(self, name, description):
+        """
+        Updates Shopping List Data
+        """
+        if description == "None":
+            self.name = name
+        else:
+            self.name = name
+            self.description = description
+        db.session.commit()
+
     def add_item(self, name, price, quantity, shoppinglist_id):
         """
         Adds an item to the current shoppinglist

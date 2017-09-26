@@ -61,6 +61,7 @@ class User(db.Model):
         """
         self.password = password
         self.username = username
+        db.session.commit()
 
     def add_shopping_list(self, name, description):
         """
