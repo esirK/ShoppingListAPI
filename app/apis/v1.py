@@ -9,9 +9,9 @@ from app.exceptions import InvalidToken, TokenExpired
 from app.models import ShoppingList
 from app.models.user import User
 
-auth = HTTPBasicAuth()
-
 configuration = os.environ.get('CURRENT_CONFIG')
+
+auth = HTTPBasicAuth()
 
 bp = Blueprint('api', __name__)
 api = Api(bp, version='1.0', title='ShoppingList API',
@@ -21,7 +21,7 @@ api = Api(bp, version='1.0', title='ShoppingList API',
 
 ns = Namespace('api', description='Endpoints for accessing '
                                   'shoppingList App Resources')
-
+# MODELS
 registration_model = ns.model('registration_args', {
     'email': fields.String(required=True, default="user@example.com"),
     'name': fields.String(required=True, default="username"),
@@ -165,6 +165,7 @@ class ShoppingLists(Resource):
 @ns.route("/shoppinglist_items")
 class Items(Resource):
     @api.response(201, "Item Added Successfully")
+    @api.response(409, "Item Already Exist")
     @api.response(404, "ShoppingList Not Found")
     @ns.expect(item_model)
     @auth.login_required
@@ -182,12 +183,18 @@ class Items(Resource):
         for shopping_list in shopping_lists:
             if shopping_list.owner_id == g.user.id:
                 # obtain shopping list specific to this user
-                shopping_list.add_item(name=name, price=price,
-                                       quantity=quantity,
-                                       shoppinglist_id=shopping_list)
-                response = jsonify({'message': "Item " + name
-                                               + " Added Successfully"})
-                return response
+                if shopping_list.add_item(name=name, price=price,
+                                          quantity=quantity,
+                                          shoppinglist_id=shopping_list):
+                    response = jsonify({'message': "Item " + name
+                                                   + " Added Successfully"})
+                    response.status_code = 201
+                    return response
+                else:
+                    response = jsonify({'message': "Item " + name
+                                                   + " Already exist"})
+                    response.status_code = 409
+                    return response
         response = jsonify({'message': "Shoppinglist " + shopping_list_name
                                        + " Not Found"})
         response.status_code = 404

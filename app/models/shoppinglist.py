@@ -24,5 +24,20 @@ class ShoppingList(db.Model):
         """
         item = Item(name=name, price=price, quantity=quantity,
                     shoppinglist=shoppinglist_id)
-        db.session.add(item)
-        db.session.commit()
+        if self.check_item(name):
+            db.session.add(item)
+            db.session.commit()
+            return True
+        else:
+            return False
+
+    def check_item(self, item_name):
+        """
+        Checks if an item exists in this shopping list before adding it
+        :return: 
+        """
+        items = Item.query.filter_by(name=item_name).all()
+        for item in items:
+            if item.shoppinglist_id == self.id:  # Item already exist
+                return False
+        return True
