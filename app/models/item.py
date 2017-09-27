@@ -23,3 +23,15 @@ class Item(db.Model):
         self.price = price
         self.quantity = quantity
         self.shoppinglist_id = shoppinglist.id
+
+    def update_item(self, name, price, quantity, shoppinglist):
+        # updates self
+        if name != "None":
+            self.name = name
+        if price != 0:
+            self.price = price
+        if quantity != 0:
+            self.quantity = quantity
+        if shoppinglist != "None":
+            self.shoppinglist_id = shoppinglist.id
+        db.session.commit()

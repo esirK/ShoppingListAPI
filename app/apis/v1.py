@@ -5,9 +5,10 @@ from flask_restplus import Resource, Api, Namespace, fields, marshal
 from flask_httpauth import HTTPBasicAuth
 
 from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_parser, item_parser, \
-    update_shoppinglist_parser
+    update_shoppinglist_parser, update_shoppinglist_item_parser
 from app.exceptions import InvalidToken, TokenExpired
 from app.models import ShoppingList
+from app.models.item import Item
 from app.models.user import User
 
 configuration = os.environ.get('CURRENT_CONFIG')
@@ -58,6 +59,14 @@ item_model = ns.model('item_model', {
     'price': fields.String(default="Price"),
     'quantity': fields.String(default="Quantity"),
     'shopping_list_name': fields.String(default="ShoppingList Name "),
+})
+item_update_model = ns.model('item_update_model', {
+    'name': fields.String(default="Item Name"),
+    'new_name': fields.String(default="None"),
+    'price': fields.String(default=0),
+    'quantity': fields.String(default=0),
+    'shopping_list_name': fields.String(default="ShoppingList Name "),
+    'new_shopping_list_name': fields.String(default="None")
 })
 
 
@@ -202,7 +211,7 @@ class Items(Resource):
     @api.response(201, "Item Added Successfully")
     @api.response(409, "Item Already Exist")
     @api.response(404, "ShoppingList Not Found")
-    @ns.expect(item_model)
+    @ns.expect(item_update_model)
     @auth.login_required
     def post(self):
         """
@@ -234,6 +243,77 @@ class Items(Resource):
                                        + " Not Found"})
         response.status_code = 404
         return response
+
+    @api.response(200, "ShoppingList Item Updated Successfully")
+    @api.response(404, "ShoppingList Item or Shopping List Does not Exist")
+    @ns.expect(item_update_model)
+    @auth.login_required
+    def put(self):
+        """
+        Updates a shopping list Item
+        """
+        args = update_shoppinglist_item_parser.parse_args()
+        name = args['name']
+        new_name = args['new_name']
+        price = args['price']
+        quantity = args['quantity']
+        shopping_list_name = args['shopping_list_name']
+        new_shopping_list_name = args['new_shopping_list_name']
+
+        # Get Shopping to which this item belongs to
+        shopping_list = ShoppingList.query.filter_by(name=shopping_list_name) \
+            .filter_by(owner_id=g.user.id).first()
+        if shopping_list is not None:
+            # get matching items from the shopping list
+
+            item = Item.query.filter_by(name=name). \
+                filter_by(shoppinglist_id=shopping_list.id).first()
+
+            if item is not None:
+                # Got The Item We supposed to Update
+                # Check if user wants to update the items shopping list
+
+                if new_shopping_list_name != "None":
+                    # Look for the Shopping list to update to
+                    new_shopping_list = ShoppingList.query. \
+                        filter_by(name=new_shopping_list_name). \
+                        filter_by(owner_id=g.user.id).first()
+
+                    if new_shopping_list is not None:
+                        # User has that Shopping List Now update the item
+                        item.update_item(name=new_name, price=price,
+                                         quantity=quantity,
+                                         shoppinglist=new_shopping_list)
+                    else:
+                        response = jsonify({'message': "The new Shopping List " +
+                                                       "'" +
+                                                       new_shopping_list_name +
+                                                       "'" +
+                                                       " Does not Exist" + "'"})
+                        response.status_code = 404
+                        return response
+                else:
+                    item.update_item(name=new_name, price=price,
+                                     quantity=quantity, shoppinglist=shopping_list)
+
+                response = jsonify({'message': "Item " + "'" + name + "'"
+                                               + " Successfully Updated"})
+                response.status_code = 200
+                return response
+            else:
+
+                response = jsonify({'message': "Item " + name
+                                               + " Does not Exist " +
+                                               "In shopping list " + "'" +
+                                               shopping_list.name + "'"})
+                response.status_code = 404
+                return response
+        else:
+
+            response = jsonify({'message': "Shopping List " + shopping_list_name
+                                           + " Does Not Exist"})
+            response.status_code = 404
+            return response
 
 
 @ns.route("/token")

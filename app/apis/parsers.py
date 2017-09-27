@@ -37,3 +37,9 @@ item_parser.add_argument('quantity', type=int, required=True,
                          help='Item Quantity')
 item_parser.add_argument('shopping_list_name', type=str, required=True,
                          help='Shoppinglist(Name) to add item to')
+
+update_shoppinglist_item_parser = item_parser.copy()
+update_shoppinglist_item_parser.add_argument('new_name', type=str, required=True,
+                                             help='New Item Name')
+update_shoppinglist_item_parser.add_argument('new_shopping_list_name', type=str, required=True,
+                                             help='New shopping list Name')
