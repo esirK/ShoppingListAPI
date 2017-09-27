@@ -149,6 +149,8 @@ class TestMain(unittest.TestCase):
         """
         Test shopping_list cannot be added more than once
         """
+        self.create_shopping_lists("Sons Birthday")
+
         response = self.client.post(
             "/v_1/shoppinglists",
             data=json.dumps({
@@ -156,16 +158,7 @@ class TestMain(unittest.TestCase):
                 "description": "Short Description About Sons Birthday"
             }),
             content_type='application/json', headers=self.headers)
-        self.assertEqual(201, response.status_code)
-
-        response2 = self.client.post(
-            "/v_1/shoppinglists",
-            data=json.dumps({
-                "name": "Sons Birthday",
-                "description": "Short Description About Sons Birthday"
-            }),
-            content_type='application/json', headers=self.headers)
-        self.assertEqual(409, response2.status_code)
+        self.assertEqual(409, response.status_code)
 
     def test_unauthenticated_user_cannot_creat_shopping_list(self):
         """
@@ -185,13 +178,7 @@ class TestMain(unittest.TestCase):
         """
         Test a Logged in User can Update his/her shopping lists
         """
-        self.client.post(
-            "/v_1/shoppinglists",
-            data=json.dumps({
-                "name": "Movies",
-                "description": "Shopping list for weekend movies"
-            }),
-            content_type='application/json', headers=self.headers)
+        self.create_shopping_lists("Movies")
         response = self.client.put(
             "/v_1/shoppinglists",
             data=json.dumps({
@@ -222,13 +209,7 @@ class TestMain(unittest.TestCase):
         """
         Test a Logged In User Can Add items to their shopping_lists
         """
-        self.client.post(
-            "/v_1/shoppinglists",
-            data=json.dumps({
-                "name": "School",
-                "description": "Short Description About Back To School"
-            }),
-            content_type='application/json', headers=self.headers)
+        self.create_shopping_lists("School")
         response = self.client.post(
             "/v_1/shoppinglist_items",
             data=json.dumps({
@@ -246,30 +227,24 @@ class TestMain(unittest.TestCase):
         Test a Logged In User Can not Add an item more than once to 
         their shopping_lists
         """
-        self.client.post(
-            "/v_1/shoppinglists",
-            data=json.dumps({
-                "name": "Party",
-                "description": "Short Description About Party Shopping List"
-            }),
-            content_type='application/json', headers=self.headers)
+        self.create_shopping_lists("Holiday")
         self.client.post(
             "/v_1/shoppinglist_items",
             data=json.dumps({
-                "name": "Beer",
-                "price": "250",
+                "name": "Router",
+                "price": "2500",
                 "quantity": "24",
-                "shopping_list_name": "Party"
+                "shopping_list_name": "Holiday"
             }
             ),
             content_type='application/json', headers=self.headers)
         response = self.client.post(
             "/v_1/shoppinglist_items",
             data=json.dumps({
-                "name": "Beer",
+                "name": "Router",
                 "price": "250",
                 "quantity": "24",
-                "shopping_list_name": "Party"
+                "shopping_list_name": "Holiday"
             }
             ),
             content_type='application/json', headers=self.headers)
@@ -308,6 +283,86 @@ class TestMain(unittest.TestCase):
             content_type='application/json')
         self.assertEqual(401, response.status_code)
         assert b'Unauthorized Access' in response.data
+
+    def test_updating_shopping_list_items(self):
+        """
+        Test a Logged in User can update their shopping list items successfully
+        """
+        self.create_shopping_lists("Party")
+        self.client.post(
+            "/v_1/shoppinglist_items",
+            data=json.dumps({
+                "name": "Beer",
+                "price": "250",
+                "quantity": "24",
+                "shopping_list_name": "Party"
+            }
+            ),
+            content_type='application/json', headers=self.headers)
+
+        response = self.client.put(
+            "/v_1/shoppinglist_items",
+            data=json.dumps({
+                "name": "Beer",
+                "new_name": "BeerX",
+                "price": 0,
+                "quantity": 0,
+                "shopping_list_name": "Party",
+                "new_shopping_list_name": "None"
+            }
+            ),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(200, response.status_code)
+        assert b'Successfully Updated' in response.data
+
+    def test_user_can_not_update_non_existing_item(self):
+        """
+        Tests if a User Can Update a Non-existing item in their shopping lists
+        """
+        self.create_shopping_lists("Fictions")
+        response = self.client.put(
+            "/v_1/shoppinglist_items",
+            data=json.dumps({
+                "name": "Flash",
+                "new_name": "Flask",
+                "price": 0,
+                "quantity": 0,
+                "shopping_list_name": "Fiction",
+                "new_shopping_list_name": "None"
+            }
+            ),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(404, response.status_code)
+        assert b'Does Not Exist' in response.data
+
+    def test_user_can_not_update_item_to_non_existing_shopping_list(self):
+        response = self.client.put(
+            "/v_1/shoppinglist_items",
+            data=json.dumps({
+                "name": "Flash",
+                "new_name": "Flask",
+                "price": 0,
+                "quantity": 0,
+                "shopping_list_name": "Fiction",
+                "new_shopping_list_name": "None"
+            }
+            ),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(404, response.status_code)
+        assert b'Shopping List Fiction Does Not Exist' in response.data
+
+    def create_shopping_lists(self, name):
+        """
+        Creates Shopping list with the Provided name
+        :param name: 
+        """
+        self.client.post(
+            "/v_1/shoppinglists",
+            data=json.dumps({
+                "name": "" + name,
+                "description": "Short Description About " + name + "Shopping List"
+            }),
+            content_type='application/json', headers=self.headers)
 
 
 if __name__ == '__main__':
