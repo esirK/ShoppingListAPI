@@ -69,7 +69,6 @@ class TestMain(unittest.TestCase):
         """
         res = self.client.get("/v_1/token", headers=self.headers)
         self.assertEqual(res.status_code, 200)
-        self.assertIn("token", res.data.decode())
 
     def test_authentication_with_token(self):
         """
@@ -78,7 +77,6 @@ class TestMain(unittest.TestCase):
         res = self.client.get("/v_1/token", headers=self.token_headers)
         """Accessing Secure endpoint using a token"""
         self.assertEqual(res.status_code, 200)
-        self.assertIn("token", res.data.decode())
 
     def test_user_login(self):
         """
@@ -100,13 +98,13 @@ class TestMain(unittest.TestCase):
             }),
             content_type='application/json')
         self.assertEqual(200, response.status_code)
-        assert b'username' in response.data
 
     def test_user_can_not_login_with_invalid_creds(self):
         """
         Test If A Registered User Can Login to the app using
         Invalid Credentials
          """
+        # email "tinyrick@gmail.com" was created on setup but with 'python' as the pass
         response = self.client.post(
             "/v_1/user",
             data=json.dumps({
@@ -115,7 +113,6 @@ class TestMain(unittest.TestCase):
             }),
             content_type='application/json')
         self.assertEqual(401, response.status_code)
-        assert b'Wrong Credentials' in response.data
 
     def test_un_registered_user_can_not_login(self):
         """
@@ -129,7 +126,6 @@ class TestMain(unittest.TestCase):
             }),
             content_type='application/json')
         self.assertEqual(401, response.status_code)
-        assert b'No User Registered With' in response.data
 
     def test_add_shopping_list(self):
         """
@@ -143,7 +139,6 @@ class TestMain(unittest.TestCase):
             }),
             content_type='application/json', headers=self.headers)
         self.assertEqual(201, response.status_code)
-        assert b'Created Successfully' in response.data
 
     def test_shopping_list_name_is_unique(self):
         """
@@ -160,7 +155,7 @@ class TestMain(unittest.TestCase):
             content_type='application/json', headers=self.headers)
         self.assertEqual(409, response.status_code)
 
-    def test_unauthenticated_user_cannot_creat_shopping_list(self):
+    def test_unauthenticated_user_cannot_create_shopping_list(self):
         """
         Test a non Logged in User can not add a shopping list
         """
@@ -171,8 +166,8 @@ class TestMain(unittest.TestCase):
                 "description": "Short Description About Soko"
             }),
             content_type='application/json')
+        # 401 means user is un authenticated
         self.assertEqual(401, response.status_code)
-        assert b'Unauthorized Access' in response.data
 
     def test_update_shopping_list(self):
         """
@@ -188,7 +183,6 @@ class TestMain(unittest.TestCase):
             }),
             content_type='application/json', headers=self.headers)
         self.assertEqual(200, response.status_code)
-        assert b'Updated Successfully' in response.data
 
     def test_update_of_non_existing_shopping_list_fails(self):
         """
@@ -202,8 +196,45 @@ class TestMain(unittest.TestCase):
                 "description": "None"
             }),
             content_type='application/json', headers=self.headers)
-        self.assertEqual(409, response.status_code)
-        assert b'Does not Exists' in response.data
+        self.assertEqual(404, response.status_code)
+
+    def test_delete_of_a_shopping_list(self):
+        """
+        Test a Logged in User Can Delete His/Her shopping lists 
+        """
+        self.create_shopping_lists("Gaming")
+        response = self.client.delete(
+            "/v_1/shoppinglists",
+            data=json.dumps({
+                "name": "Gaming"
+            }),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(200, response.status_code)
+
+    def test_delete_of_non_existing_shopping_list_fails(self):
+        """
+        Test a Logged in User Can not Delete a non existing shopping lists 
+        """
+        response = self.client.delete(
+            "/v_1/shoppinglists",
+            data=json.dumps({
+                "name": "Not existing"
+            }),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(404, response.status_code)
+
+    def test_non_user_can_not_delete_a_shopping_list(self):
+        """
+        Test a Non Logged in User Can not Delete a shopping lists 
+        """
+        self.create_shopping_lists("Morties")
+        response = self.client.delete(
+            "/v_1/shoppinglists",
+            data=json.dumps({
+                "name": "Morties"
+            }),
+            content_type='application/json')  # No headers provided
+        self.assertEqual(401, response.status_code)
 
     def test_shopping_list_item_created_successfully(self):
         """
@@ -258,7 +289,7 @@ class TestMain(unittest.TestCase):
         response = self.client.post(
             "/v_1/shoppinglist_items",
             data=json.dumps({
-                "name": "Amazing Woman",
+                "name": "Wounder Woman",
                 "price": "150",
                 "quantity": "2",
                 "shopping_list_name": "Movies"
@@ -280,9 +311,8 @@ class TestMain(unittest.TestCase):
                 "shopping_list_name": "Movies"
             }
             ),
-            content_type='application/json')
+            content_type='application/json')  # authentication headers not passed
         self.assertEqual(401, response.status_code)
-        assert b'Unauthorized Access' in response.data
 
     def test_updating_shopping_list_items(self):
         """
@@ -313,7 +343,6 @@ class TestMain(unittest.TestCase):
             ),
             content_type='application/json', headers=self.headers)
         self.assertEqual(200, response.status_code)
-        assert b'Successfully Updated' in response.data
 
     def test_user_can_not_update_non_existing_item(self):
         """
@@ -333,23 +362,37 @@ class TestMain(unittest.TestCase):
             ),
             content_type='application/json', headers=self.headers)
         self.assertEqual(404, response.status_code)
-        assert b'Does Not Exist' in response.data
 
     def test_user_can_not_update_item_to_non_existing_shopping_list(self):
+        """
+        Tests updating an item in one shopping list to a shopping list
+        that does not exist fails
+        """
+        self.create_shopping_lists("Back to school")
+        self.client.post(
+            "/v_1/shoppinglist_items",
+            data=json.dumps({
+                "name": "Beer",
+                "price": "250",
+                "quantity": "24",
+                "shopping_list_name": "Back to school"
+            }
+            ),
+            content_type='application/json', headers=self.headers)
+
         response = self.client.put(
             "/v_1/shoppinglist_items",
             data=json.dumps({
-                "name": "Flash",
-                "new_name": "Flask",
+                "name": "Beer",
+                "new_name": "Alcohol",
                 "price": 0,
                 "quantity": 0,
-                "shopping_list_name": "Fiction",
-                "new_shopping_list_name": "None"
+                "shopping_list_name": "Back to school",
+                "new_shopping_list_name": "Fiction"
             }
             ),
             content_type='application/json', headers=self.headers)
         self.assertEqual(404, response.status_code)
-        assert b'Shopping List Fiction Does Not Exist' in response.data
 
     def create_shopping_lists(self, name):
         """
