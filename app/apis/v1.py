@@ -122,6 +122,7 @@ class AppUser(Resource):
     def post(self):
         """
         User Login
+        Supply details user registered with.
         """
         args = master_parser.parse_args()
         email = args['email']
@@ -144,6 +145,7 @@ class AppUser(Resource):
     def put(self):
         """
         edit Account credentials
+        Only username and password can be changed
         """
         args = update_parser.parse_args()
         username = args['name']
@@ -178,6 +180,8 @@ class ShoppingLists(Resource):
     def put(self):
         """
         Updates a shopping list 
+        Both the "new_name" and "description" fields can be left as 'None' 
+        if the user does not intend to update either
         """
         args = update_shoppinglist_parser.parse_args()
         name = args['name']
@@ -219,11 +223,13 @@ class Items(Resource):
     @api.response(201, "Item Added Successfully")
     @api.response(409, "Item Already Exist")
     @api.response(404, "ShoppingList Not Found")
-    @ns.expect(item_update_model)
+    @ns.expect(item_model)
     @auth.login_required
     def post(self):
         """
         Add's a ShoppingList item
+        "shopping_list_name" Is the name of the shopping_list to which the 
+        item will be added to.
         """
         args = item_parser.parse_args()
         name = args['name']
@@ -231,17 +237,18 @@ class Items(Resource):
         quantity = args['quantity']
         shopping_list_name = args['shopping_list_name']
         # get shoppinglist from db
-        shopping_lists = ShoppingList.query.filter_by(name=shopping_list_name).all()
-        for shopping_list in shopping_lists:
-            if shopping_list.owner_id == g.user.id:
-                # obtain shopping list specific to this user
-                if shopping_list.add_item(name=name, price=price,
-                                          quantity=quantity,
-                                          shoppinglist_id=shopping_list):
-                    return make_response(201, "Item " + name, " Added Successfully")
 
-                else:
-                    return make_response(409, "Item " + name, " Already exist")
+        shopping_list = ShoppingList.query.filter_by(name=shopping_list_name)\
+            .filter_by(owner_id=g.user.id).first()
+        if shopping_list:
+            # Eureka we found the shopping list add the item now
+            if shopping_list.add_item(name=name, price=price,
+                                      quantity=quantity,
+                                      shoppinglist_id=shopping_list):
+                return make_response(201, "Item " + name, " Added Successfully")
+
+            else:
+                return make_response(409, "Item " + name, " Already exist")
 
         return make_response(404, "Shoppinglist " + shopping_list_name,
                              " Not Found")
