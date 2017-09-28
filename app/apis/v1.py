@@ -5,7 +5,7 @@ from flask_restplus import Resource, Api, Namespace, fields, marshal
 from flask_httpauth import HTTPBasicAuth
 
 from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_parser, item_parser, \
-    update_shoppinglist_parser, update_shoppinglist_item_parser
+    update_shoppinglist_parser, update_shoppinglist_item_parser, delete_shoppinglist_parser
 from app.exceptions import InvalidToken, TokenExpired
 from app.models import ShoppingList
 from app.models.item import Item
@@ -53,7 +53,9 @@ update_shopping_list_model = ns.model('update_shopping_list_model', {
     'new_name': fields.String(default="New name"),
     'description': fields.String(default="None"),
 })
-
+delete_shopping_list_model = ns.model('delete_shopping_list_model', {
+    'name': fields.String(default="Shopping List name")
+})
 item_model = ns.model('item_model', {
     'name': fields.String(default="Name"),
     'price': fields.String(default="Price"),
@@ -97,20 +99,20 @@ class AppUsers(Resource):
     @api.response(201, "User Registered Successfully")
     @api.response(409, "User Already Exists")
     def post(self):
+        """
+        Registers a new User into the App
+        """
         args = parser.parse_args()
         email = args['email']
         username = args['name']
         password = args['password']
 
         if User.query.filter_by(email=email).first() is not None:
-            response = jsonify({"message": email + ' Already Exists'})
-            response.status_code = 409
-            return response  # existing user
+            return make_response(409, email, " Already Exists")  # existing user
+
         user = User(email=email, username=username, password=password)
         user.save_user()
-        response = jsonify({'message': user.username + " Created Successfully"})
-        response.status_code = 201
-        return response
+        return make_response(201, user.username, " Created Successfully")
 
 
 @ns.route("/user")
@@ -119,7 +121,7 @@ class AppUser(Resource):
     @api.response(401, "Unknown User or Invalid Credentials")
     def post(self):
         """
-        Login a User Using email and Password
+        User Login
         """
         args = master_parser.parse_args()
         email = args['email']
@@ -131,13 +133,10 @@ class AppUser(Resource):
                 g.user = user
                 return marshal(user, user_model)
             else:
-                response = jsonify({'message': "Wrong Credentials "})
-                response.status_code = 401
-                return response
+                return make_response(401, "Wrong Credentials ", " Provided")
+
         else:
-            response = jsonify({'message': "No User Registered With " + email})
-            response.status_code = 401
-            return response
+            return make_response(401, "No User Registered With " + email, " Exists")
 
     @ns.expect(update_model)
     @auth.login_required
@@ -167,18 +166,13 @@ class ShoppingLists(Resource):
         name = args['name']
         description = args['description']
         if g.user.add_shopping_list(name=name, description=description):
-            response = jsonify({'message': "Shoppinglist " + name
-                                           + " Created Successfully"})
-            response.status_code = 201
-            return response
+            return make_response(201, "Shopping list " + name,
+                                 " Created Successfully")
         else:
-            response = jsonify({'message': "Shoppinglist " + name
-                                           + " Already Exists"})
-            response.status_code = 409
-            return response
+            return make_response(409, "Shopping list " + name, " Already Exists")
 
     @api.response(200, "ShoppingList Updated Successfully")
-    @api.response(409, "ShoppingList Does not Exist")
+    @api.response(404, "ShoppingList Does not Exist")
     @ns.expect(update_shopping_list_model)
     @auth.login_required
     def put(self):
@@ -195,15 +189,29 @@ class ShoppingLists(Resource):
         if shopping_list is not None:
             # We got the shopping list. Now Update it
             shopping_list.update_shopping_list(new_name, description)
-            response = jsonify({'message': "Shoppinglist " + name
-                                           + " Updated Successfully"})
-            response.status_code = 200
-            return response
+            return make_response(200, "Shopping list " + name, " Updated Successfully")
+
         else:
-            response = jsonify({'message': "Shoppinglist " + name
-                                           + " Does not Exists"})
-            response.status_code = 409
-            return response
+            return make_response(404, "Shopping list " + name, " Does not exist")
+
+    @api.response(200, "ShoppingList Deleted Successfully")
+    @api.response(404, "ShoppingList Does not Exist")
+    @ns.expect(delete_shopping_list_model)
+    @auth.login_required
+    def delete(self):
+        """
+        Deletes a shopping list 
+        """
+        args = delete_shoppinglist_parser.parse_args()
+        name = args['name']
+        # Get the shopping list specified and belonging to current user
+        shopping_list = ShoppingList.query.filter_by(name=name) \
+            .filter_by(owner_id=g.user.id).first()
+        if shopping_list is not None:
+            g.user.delete_shoppinglist(shopping_list)
+            return make_response(200, "Shopping list " + name, " Deleted Successfully")
+        else:
+            return make_response(404, "Shopping list " + name, " Does not exist")
 
 
 @ns.route("/shoppinglist_items")
@@ -215,7 +223,7 @@ class Items(Resource):
     @auth.login_required
     def post(self):
         """
-        Add a ShoppingList item
+        Add's a ShoppingList item
         """
         args = item_parser.parse_args()
         name = args['name']
@@ -230,19 +238,13 @@ class Items(Resource):
                 if shopping_list.add_item(name=name, price=price,
                                           quantity=quantity,
                                           shoppinglist_id=shopping_list):
-                    response = jsonify({'message': "Item " + name
-                                                   + " Added Successfully"})
-                    response.status_code = 201
-                    return response
+                    return make_response(201, "Item " + name, " Added Successfully")
+
                 else:
-                    response = jsonify({'message': "Item " + name
-                                                   + " Already exist"})
-                    response.status_code = 409
-                    return response
-        response = jsonify({'message': "Shoppinglist " + shopping_list_name
-                                       + " Not Found"})
-        response.status_code = 404
-        return response
+                    return make_response(409, "Item " + name, " Already exist")
+
+        return make_response(404, "Shoppinglist " + shopping_list_name,
+                             " Not Found")
 
     @api.response(200, "ShoppingList Item Updated Successfully")
     @api.response(404, "ShoppingList Item or Shopping List Does not Exist")
@@ -251,6 +253,8 @@ class Items(Resource):
     def put(self):
         """
         Updates a shopping list Item
+        For Fields that the user does not want to update leave them as they are on the model
+        i.e "None' for "new_name" and "new_shopping_list_name" and '0' for "price" and "quantity"
         """
         args = update_shoppinglist_item_parser.parse_args()
         name = args['name']
@@ -285,35 +289,31 @@ class Items(Resource):
                                          quantity=quantity,
                                          shoppinglist=new_shopping_list)
                     else:
-                        response = jsonify({'message': "The new Shopping List " +
-                                                       "'" +
-                                                       new_shopping_list_name +
-                                                       "'" +
-                                                       " Does not Exist" + "'"})
-                        response.status_code = 404
-                        return response
+
+                        return make_response(404, "The new Shopping List " +
+                                             "'" +
+                                             new_shopping_list_name +
+                                             "'",
+                                             " Does not Exist")
+
                 else:
                     item.update_item(name=new_name, price=price,
                                      quantity=quantity, shoppinglist=shopping_list)
 
-                response = jsonify({'message': "Item " + "'" + name + "'"
-                                               + " Successfully Updated"})
-                response.status_code = 200
-                return response
+                return make_response(200, "Item " + "'" + name + "'",
+                                     " Successfully Updated")
+
             else:
-
-                response = jsonify({'message': "Item " + name
-                                               + " Does not Exist " +
-                                               "In shopping list " + "'" +
-                                               shopping_list.name + "'"})
-                response.status_code = 404
-                return response
+                return make_response(404, "Item " + name,
+                                     "Does not Exist In shopping list '" + shopping_list.name + "'")
         else:
+            return make_response(404, "Shopping List " + shopping_list_name, "Does Not Exist")
 
-            response = jsonify({'message': "Shopping List " + shopping_list_name
-                                           + " Does Not Exist"})
-            response.status_code = 404
-            return response
+
+def make_response(status_code, name_obj, message):
+    response = jsonify({'message': name_obj + " " + message})
+    response.status_code = status_code
+    return response
 
 
 @ns.route("/token")
@@ -321,5 +321,9 @@ class GetAuthToken(Resource):
     decorators = [auth.login_required]
 
     def get(self):
+        """
+        Generate authentication token for logged in user
+        Use the generated Authentication Token for other requests for security reasons
+        """
         token = g.user.generate_auth_token(configurations=configuration, expiration=600)
         return jsonify({'token': token.decode('ascii'), 'duration': 600})

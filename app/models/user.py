@@ -77,6 +77,10 @@ class User(db.Model):
         db.session.commit()
         return True
 
+    def delete_shoppinglist(self, shoppinglist):
+        db.session.delete(shoppinglist)
+        db.session.commit()
+
     @staticmethod
     def verify_auth_token(token, configuration):
         s = Serializer(config[configuration].SECRET_KEY)

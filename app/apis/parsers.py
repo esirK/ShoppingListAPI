@@ -27,6 +27,10 @@ update_shoppinglist_parser = shoppinglist_parser.copy()
 update_shoppinglist_parser.add_argument('new_name', type=str, required=True,
                                         help='New Shoppinglist Name')
 
+delete_shoppinglist_parser = reqparse.RequestParser()
+delete_shoppinglist_parser.add_argument('name', type=str, required=True,
+                                        help='Name of Shoppinglist to delete')
+
 item_parser = reqparse.RequestParser()
 item_parser.add_argument('name', type=str, required=True,
                          help='Item Name')
