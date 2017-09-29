@@ -340,6 +340,42 @@ class TestMain(unittest.TestCase):
             content_type='application/json', headers=self.headers)
         self.assertEqual(404, response.status_code)
 
+    def test_delete_shopping_list_item(self):
+        """
+        tests if a logged in user is able to delete a shopping list item
+        from his/her shopping lists
+        """
+        self.create_shopping_lists("BBQ")
+        self.create_shopping_lists_item("Meat", 4000, 20, "BBQ")
+        response = self.delete_shopping_list_item(name="Meat", shopping_list_name="BBQ")
+        self.assertEqual(200, response.status_code)
+
+    def test_delete_of_non_existing_shopping_list_item_fails(self):
+        """
+        tests response if a user tries to delete non-existing item
+        """
+        self.create_shopping_lists("Love")
+        response = self.delete_shopping_list_item(name="Meat", shopping_list_name="Love")
+        self.assertEqual(404, response.status_code)
+
+    def test_user_cannot_delete_an_item_from_non_existing_shopping_list(self):
+        """
+        Tests that a user is not able to delete an item from a shopping list
+        that has not been created
+        :return: 
+        """
+        response = self.delete_shopping_list_item("Siko", "Pia Siko")
+        self.assertEqual(404, response.status_code)
+
+    def test_non_authenticated_user_cannot_delete_an_item(self):
+        response = self.client.delete(
+            "/v_1/shoppinglist_items",
+            data=json.dumps({
+                "name": "any name",
+                "shopping_list_name": "Try me"
+            }),
+            content_type='application/json')# No Headers
+        self.assertEqual(401, response.status_code)
 
     def create_shopping_lists(self, name):
         """
@@ -372,6 +408,19 @@ class TestMain(unittest.TestCase):
                 "shopping_list_name": shopping_list_name,
             }
             ),
+            content_type='application/json', headers=self.headers)
+
+    def delete_shopping_list_item(self, name, shopping_list_name):
+        """
+        Deletes a given shopping list item
+        :return: 
+        """
+        return self.client.delete(
+            "/v_1/shoppinglist_items",
+            data=json.dumps({
+                "name": name,
+                "shopping_list_name": shopping_list_name
+            }),
             content_type='application/json', headers=self.headers)
 
 
