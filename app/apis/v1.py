@@ -1,13 +1,14 @@
 import os
 
 from flask import g, jsonify, Blueprint
-from flask_restplus import Resource, Api, Namespace, fields, marshal
+from flask_restplus import Resource, Api, marshal
 from flask_httpauth import HTTPBasicAuth
 
 from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_parser, item_parser, \
     update_shoppinglist_parser, update_shoppinglist_item_parser, delete_shoppinglist_parser
 from app.exceptions import InvalidToken, TokenExpired
-from app.models import ShoppingList
+from app.models import ShoppingList, ns, registration_model, login_model, update_model, user_model, shopping_list_model, \
+    update_shopping_list_model, delete_shopping_list_model, item_model, item_update_model
 from app.models.item import Item
 from app.models.user import User
 
@@ -20,56 +21,6 @@ api = Api(bp, version='1.0', title='ShoppingList API',
           description='A ShoppingList API For Users To Create,'
                       ' Edit and Share ShoppingLists'
           )
-
-ns = Namespace('api', description='Endpoints for accessing '
-                                  'shoppingList App Resources')
-# MODELS
-registration_model = ns.model('registration_args', {
-    'email': fields.String(required=True, default="user@example.com"),
-    'name': fields.String(required=True, default="username"),
-    'password': fields.String(required=True, default="password")
-})
-login_model = ns.model('login_args', {
-    'email': fields.String(required=True, default="user.example.com"),
-    'password': fields.String(required=True, default="password")
-})
-update_model = ns.model('update_args', {
-    'name': fields.String(required=True, default="username"),
-    'password': fields.String(required=True, default="password")
-})
-
-user_model = ns.model('Model', {
-    'name': fields.String(default="username"),
-    'email': fields.String(default="user@example.com"),
-})
-
-shopping_list_model = ns.model('shopping_list_model', {
-    'name': fields.String(default="Name"),
-    'description': fields.String(default="Short description..."),
-})
-
-update_shopping_list_model = ns.model('update_shopping_list_model', {
-    'name': fields.String(default="Shopping List name"),
-    'new_name': fields.String(default="New name"),
-    'description': fields.String(default="None"),
-})
-delete_shopping_list_model = ns.model('delete_shopping_list_model', {
-    'name': fields.String(default="Shopping List name")
-})
-item_model = ns.model('item_model', {
-    'name': fields.String(default="Name"),
-    'price': fields.String(default="Price"),
-    'quantity': fields.String(default="Quantity"),
-    'shopping_list_name': fields.String(default="ShoppingList Name "),
-})
-item_update_model = ns.model('item_update_model', {
-    'name': fields.String(default="Item Name"),
-    'new_name': fields.String(default="None"),
-    'price': fields.String(default=0),
-    'quantity': fields.String(default=0),
-    'shopping_list_name': fields.String(default="ShoppingList Name "),
-    'new_shopping_list_name': fields.String(default="None")
-})
 
 
 @auth.verify_password
