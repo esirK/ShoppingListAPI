@@ -241,16 +241,7 @@ class TestMain(unittest.TestCase):
         Test a Logged In User Can Add items to their shopping_lists
         """
         self.create_shopping_lists("School")
-        response = self.client.post(
-            "/v_1/shoppinglist_items",
-            data=json.dumps({
-                "name": "Skuma",
-                "price": "10",
-                "quantity": "2",
-                "shopping_list_name": "School"
-            }
-            ),
-            content_type='application/json', headers=self.headers)
+        response = self.create_shopping_lists_item("Skuma", 10, 2, "School")
         self.assertEqual(201, response.status_code)
 
     def test_existing_shopping_list_item_can_not_be_created(self):
@@ -259,26 +250,8 @@ class TestMain(unittest.TestCase):
         their shopping_lists
         """
         self.create_shopping_lists("Holiday")
-        self.client.post(
-            "/v_1/shoppinglist_items",
-            data=json.dumps({
-                "name": "Router",
-                "price": "2500",
-                "quantity": "24",
-                "shopping_list_name": "Holiday"
-            }
-            ),
-            content_type='application/json', headers=self.headers)
-        response = self.client.post(
-            "/v_1/shoppinglist_items",
-            data=json.dumps({
-                "name": "Router",
-                "price": "250",
-                "quantity": "24",
-                "shopping_list_name": "Holiday"
-            }
-            ),
-            content_type='application/json', headers=self.headers)
+        self.create_shopping_lists_item("Router", 2500, 24, "Holiday")
+        response = self.create_shopping_lists_item("Router", 2500, 24, "Holiday")
         self.assertEqual(409, response.status_code)
 
     def test_shopping_list_not_found_returned(self):
@@ -286,16 +259,7 @@ class TestMain(unittest.TestCase):
         Test 404 is returned on attempt to add items on non existing shoppinglist 
         :return: 
         """
-        response = self.client.post(
-            "/v_1/shoppinglist_items",
-            data=json.dumps({
-                "name": "Wounder Woman",
-                "price": "150",
-                "quantity": "2",
-                "shopping_list_name": "Movies"
-            }
-            ),
-            content_type='application/json', headers=self.headers)
+        response = self.create_shopping_lists_item("Wounder Woman", 150, 2, "Movies")
         self.assertEqual(404, response.status_code)
 
     def test_un_authenticated_users_cannot_add_items(self):
@@ -319,16 +283,7 @@ class TestMain(unittest.TestCase):
         Test a Logged in User can update their shopping list items successfully
         """
         self.create_shopping_lists("Party")
-        self.client.post(
-            "/v_1/shoppinglist_items",
-            data=json.dumps({
-                "name": "Beer",
-                "price": "250",
-                "quantity": "24",
-                "shopping_list_name": "Party"
-            }
-            ),
-            content_type='application/json', headers=self.headers)
+        self.create_shopping_lists_item("Beer", 250, 24, "Party")
 
         response = self.client.put(
             "/v_1/shoppinglist_items",
@@ -369,16 +324,7 @@ class TestMain(unittest.TestCase):
         that does not exist fails
         """
         self.create_shopping_lists("Back to school")
-        self.client.post(
-            "/v_1/shoppinglist_items",
-            data=json.dumps({
-                "name": "Beer",
-                "price": "250",
-                "quantity": "24",
-                "shopping_list_name": "Back to school"
-            }
-            ),
-            content_type='application/json', headers=self.headers)
+        self.create_shopping_lists_item("Beer", 250, 24, "Back to school")
 
         response = self.client.put(
             "/v_1/shoppinglist_items",
@@ -394,6 +340,7 @@ class TestMain(unittest.TestCase):
             content_type='application/json', headers=self.headers)
         self.assertEqual(404, response.status_code)
 
+
     def create_shopping_lists(self, name):
         """
         Creates Shopping list with the Provided name
@@ -405,6 +352,26 @@ class TestMain(unittest.TestCase):
                 "name": "" + name,
                 "description": "Short Description About " + name + "Shopping List"
             }),
+            content_type='application/json', headers=self.headers)
+
+    def create_shopping_lists_item(self, name, price, quantity, shopping_list_name):
+        """
+        Creates a shopping list item with provided details
+        :param name: Of the item
+        :param price: of the item
+        :param quantity: of the item
+        :param shopping_list_name: to which the item belongs to
+        :return: a response
+        """
+        return self.client.post(
+            "/v_1/shoppinglist_items",
+            data=json.dumps({
+                "name": name,
+                "price": price,
+                "quantity": quantity,
+                "shopping_list_name": shopping_list_name,
+            }
+            ),
             content_type='application/json', headers=self.headers)
 
 
