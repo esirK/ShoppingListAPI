@@ -35,20 +35,18 @@ class ShoppingList(db.Model):
         """
         item = Item(name=name, price=price, quantity=quantity,
                     shoppinglist=shoppinglist_id)
-        if self.check_item(name):
+        check_item = Item.query.filter_by(name=name).filter_by(shoppinglist_id=self.id).first()
+        if not check_item:
             db.session.add(item)
             db.session.commit()
             return True
         else:
             return False
 
-    def check_item(self, item_name):
+    def delete_item(self, item):
         """
-        Checks if an item exists in this shopping list before adding it
-        :return: 
+        Deletes an item from this shopping list
+        :param item: 
         """
-        items = Item.query.filter_by(name=item_name).all()
-        for item in items:
-            if item.shoppinglist_id == self.id:  # Item already exist
-                return False
-        return True
+        db.session.delete(item)
+        db.session.commit()

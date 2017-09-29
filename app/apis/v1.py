@@ -5,10 +5,12 @@ from flask_restplus import Resource, Api, marshal
 from flask_httpauth import HTTPBasicAuth
 
 from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_parser, item_parser, \
-    update_shoppinglist_parser, update_shoppinglist_item_parser, delete_shoppinglist_parser
+    update_shoppinglist_parser, update_shoppinglist_item_parser, delete_shoppinglist_parser, \
+    delete_shoppinglist_item_parser
 from app.exceptions import InvalidToken, TokenExpired
 from app.models import ShoppingList, ns, registration_model, login_model, update_model, user_model, shopping_list_model, \
-    update_shopping_list_model, delete_shopping_list_model, item_model, item_update_model
+    update_shopping_list_model, delete_shopping_list_model, item_model, item_update_model, \
+    delete_shopping_list_item_model
 from app.models.item import Item
 from app.models.user import User
 
@@ -189,7 +191,7 @@ class Items(Resource):
         shopping_list_name = args['shopping_list_name']
         # get shoppinglist from db
 
-        shopping_list = ShoppingList.query.filter_by(name=shopping_list_name)\
+        shopping_list = ShoppingList.query.filter_by(name=shopping_list_name) \
             .filter_by(owner_id=g.user.id).first()
         if shopping_list:
             # Eureka we found the shopping list add the item now
@@ -266,6 +268,34 @@ class Items(Resource):
                                      "Does not Exist In shopping list '" + shopping_list.name + "'")
         else:
             return make_response(404, "Shopping List " + shopping_list_name, "Does Not Exist")
+
+    @api.response(200, "ShoppingList Item Deleted Successfully")
+    @api.response(404, "ShoppingList or ShoppingList Item Does not Exist")
+    @ns.expect(delete_shopping_list_item_model)
+    @auth.login_required
+    def delete(self):
+        """
+        Deletes a shopping list Item
+        """
+        args = delete_shoppinglist_item_parser.parse_args()
+        name = args['name']
+        shopping_list_name = args['shopping_list_name']
+
+        # Check if That shopping list exist
+        shopping_list = ShoppingList.query. \
+            filter_by(name=shopping_list_name). \
+            filter_by(owner_id=g.user.id).first()
+        if shopping_list:
+            # Check if That Item Now Exists
+            item = Item.query.filter_by(name=name).\
+                filter_by(shoppinglist_id=shopping_list.id).first()
+            if item:
+                shopping_list.delete_item(item)
+                return make_response(200, "Item "+name, " Deleted Successfully")
+            else:
+                return make_response(404, "Item "+name, " Does Not Exist.")
+        else:
+            return make_response(404, "ShoppingList "+shopping_list_name, "Does not Exist.")
 
 
 def make_response(status_code, name_obj, message):
