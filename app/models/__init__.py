@@ -49,6 +49,17 @@ item_model = ns.model('item_model', {
     'quantity': fields.String(default="Quantity"),
     'shopping_list_name': fields.String(default="ShoppingList Name "),
 })
+result_item_model = ns.model('item_model', {
+    'name': fields.String(default="Name"),
+    'price': fields.String(default="Price"),
+    'quantity': fields.String(default="Quantity"),
+})
+shopping_lists_with_items_model = shopping_list_model. \
+    clone('shopping_lists_with_items_model',
+          {
+              'items': fields.List(fields.Nested(result_item_model))
+          })
+
 item_update_model = ns.model('item_update_model', {
     'name': fields.String(default="Item Name"),
     'new_name': fields.String(default="None"),

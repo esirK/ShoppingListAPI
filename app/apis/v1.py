@@ -10,7 +10,7 @@ from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_
 from app.exceptions import InvalidToken, TokenExpired
 from app.models import ShoppingList, ns, registration_model, login_model, update_model, user_model, shopping_list_model, \
     update_shopping_list_model, delete_shopping_list_model, item_model, item_update_model, \
-    delete_shopping_list_item_model
+    delete_shopping_list_item_model, shopping_lists_with_items_model
 from app.models.item import Item
 from app.models.user import User
 
@@ -109,6 +109,16 @@ class AppUser(Resource):
 
 @ns.route("/shoppinglists")
 class ShoppingLists(Resource):
+    @auth.login_required
+    def get(self):
+        """
+        gets all shoppinglists of current user
+        Note that an empty list will be retured in cases where there 
+        is no shoppinglists 
+        """
+        shopping_lists = ShoppingList.query.filter_by(owner_id=g.user.id).all()
+        return marshal(shopping_lists, shopping_lists_with_items_model)
+
     @api.response(201, "ShoppingList Added Successfully")
     @api.response(409, "ShoppingList Already Exist")
     @ns.expect(shopping_list_model)
@@ -194,7 +204,7 @@ class Items(Resource):
         shopping_list = ShoppingList.query.filter_by(name=shopping_list_name) \
             .filter_by(owner_id=g.user.id).first()
         if shopping_list:
-            # Eureka we found the shopping list add the item now
+            # Eureka!!! we found the shopping list add the item now
             if shopping_list.add_item(name=name, price=price,
                                       quantity=quantity,
                                       shoppinglist_id=shopping_list):
@@ -287,15 +297,15 @@ class Items(Resource):
             filter_by(owner_id=g.user.id).first()
         if shopping_list:
             # Check if That Item Now Exists
-            item = Item.query.filter_by(name=name).\
+            item = Item.query.filter_by(name=name). \
                 filter_by(shoppinglist_id=shopping_list.id).first()
             if item:
                 shopping_list.delete_item(item)
-                return make_response(200, "Item "+name, " Deleted Successfully")
+                return make_response(200, "Item " + name, " Deleted Successfully")
             else:
-                return make_response(404, "Item "+name, " Does Not Exist.")
+                return make_response(404, "Item " + name, " Does Not Exist.")
         else:
-            return make_response(404, "ShoppingList "+shopping_list_name, "Does not Exist.")
+            return make_response(404, "ShoppingList " + shopping_list_name, "Does not Exist.")
 
 
 def make_response(status_code, name_obj, message):
