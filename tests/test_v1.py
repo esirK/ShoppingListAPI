@@ -139,7 +139,6 @@ class TestMain(unittest.TestCase):
                 "description": "Short Description About Soko"
             }),
             content_type='application/json', headers=self.headers)
-        print(response.data)
         self.assertEqual(201, response.status_code)
 
     def test_view_shopping_lists(self):
