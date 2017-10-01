@@ -9,31 +9,30 @@ from app import create_app, db
 class TestMain(unittest.TestCase):
     configurations = "testing"
     app = create_app(configurations)
-    app.app_context().push()
-    # create all tables
-    db.drop_all()
-    db.create_all()
 
     def setUp(self):
-        self.client = self.app.test_client()
-        self.headers = {
-            'Authorization': 'Basic %s' %
-                             b64encode(b"tinyrick@gmail.com:python")
-                                 .decode("ascii")
-        }
-        self.client.post("/v_1/register",
-                         data=json.dumps({"name": "tinyrick",
-                                          "password": "python",
-                                          "email": "tinyrick@gmail.com"
-                                          }),
-                         content_type='application/json')
-        res = self.client.get("/v_1/token", headers=self.headers)
-        token = json.loads(res.data)['token']
-        self.token_headers = {
-            'Authorization': 'Basic %s'
-                             % b64encode(bytes(token + ':', "utf-8"))
-                                 .decode("ascii")
-        }
+        with self.app.app_context():
+            db.drop_all()
+            db.create_all()
+            self.client = self.app.test_client()
+            self.headers = {
+                'Authorization': 'Basic %s' %
+                                 b64encode(b"tinyrick@gmail.com:python")
+                                     .decode("ascii")
+            }
+            self.client.post("/v_1/register",
+                             data=json.dumps({"name": "tinyrick",
+                                              "password": "python",
+                                              "email": "tinyrick@gmail.com"
+                                              }),
+                             content_type='application/json')
+            res = self.client.get("/v_1/token", headers=self.headers)
+            token = json.loads(res.data)['token']
+            self.token_headers = {
+                'Authorization': 'Basic %s'
+                                 % b64encode(bytes(token + ':', "utf-8"))
+                                     .decode("ascii")
+            }
 
     def test_user_registration(self):
         """Test if a user is created using the api"""
@@ -139,6 +138,26 @@ class TestMain(unittest.TestCase):
             }),
             content_type='application/json', headers=self.headers)
         self.assertEqual(201, response.status_code)
+
+    def test_view_shopping_lists(self):
+        """
+        Test a logged in user can view all his/her shoppinglists
+         together with the items in them 
+        """
+        self.create_shopping_lists("Family")
+        self.create_shopping_lists("Games")
+
+        self.create_shopping_lists_item("Wine", 2500, 3, "Family")
+        self.create_shopping_lists_item("Ball", 2500, 3, "Games")
+
+        response = self.client.get(
+            "/v_1/shoppinglists",
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(2, len(json.loads(response.data)))
+
+        x = json.loads(response.data)
+
+        self.assertEqual(1, len(x[0]['items']))
 
     def test_shopping_list_name_is_unique(self):
         """
@@ -374,7 +393,7 @@ class TestMain(unittest.TestCase):
                 "name": "any name",
                 "shopping_list_name": "Try me"
             }),
-            content_type='application/json')# No Headers
+            content_type='application/json')  # No Headers
         self.assertEqual(401, response.status_code)
 
     def create_shopping_lists(self, name):
