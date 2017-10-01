@@ -3,7 +3,8 @@ from base64 import b64encode
 
 from flask import json
 
-from app import create_app, db
+from app import create_app
+from app.db import db
 
 
 class TestMain(unittest.TestCase):
@@ -12,6 +13,7 @@ class TestMain(unittest.TestCase):
 
     def setUp(self):
         with self.app.app_context():
+            db.session.commit()
             db.drop_all()
             db.create_all()
             self.client = self.app.test_client()
@@ -137,6 +139,7 @@ class TestMain(unittest.TestCase):
                 "description": "Short Description About Soko"
             }),
             content_type='application/json', headers=self.headers)
+        print(response.data)
         self.assertEqual(201, response.status_code)
 
     def test_view_shopping_lists(self):

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from app import db
+from app.db import db
 
 
 class Item(db.Model):

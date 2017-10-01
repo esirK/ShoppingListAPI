@@ -1,12 +1,9 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 
 from app.configurations import config
 
-# initialize sql-alchemy
-
-db = SQLAlchemy()
 from app.apis.v1 import api, bp, ns
+from app.db import db
 
 api.add_namespace(ns, path="/v_1")
 
