@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import config
-from app.db import db
+from app.init_db import db
 from app.exceptions import UserAlreadyExist
 from app.models.shoppinglist import ShoppingList
 

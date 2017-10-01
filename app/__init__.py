@@ -3,7 +3,7 @@ from flask import Flask
 from app.configurations import config
 
 from app.apis.v1 import api, bp, ns
-from .db import db
+from app.init_db import db
 
 api.add_namespace(ns, path="/v_1")
 

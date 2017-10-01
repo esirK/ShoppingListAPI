@@ -4,7 +4,7 @@ from base64 import b64encode
 from flask import json
 
 from app import create_app
-from app.db import db
+from app.init_db import db
 
 
 class TestMain(unittest.TestCase):
