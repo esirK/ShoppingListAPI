@@ -56,3 +56,14 @@ update_shoppinglist_item_parser.add_argument('new_name', type=str, required=True
                                              help='New Item Name')
 update_shoppinglist_item_parser.add_argument('new_shopping_list_name', type=str, required=True,
                                              help='New shopping list Name')
+
+paginate_query_parser = reqparse.RequestParser()
+paginate_query_parser.add_argument(
+    'q', type=str, required=False, help="Search for"
+)
+paginate_query_parser.add_argument(
+    'page', type=int, required=False, help="page of results"
+)
+paginate_query_parser.add_argument(
+    'limit', type=int, required=False, help="limit per page"
+)

@@ -1,12 +1,13 @@
 import os
 
-from flask import g, jsonify, Blueprint
+from flask import g, jsonify, Blueprint, request
+
 from flask_restplus import Resource, Api, marshal
 from flask_httpauth import HTTPBasicAuth
 
 from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_parser, item_parser, \
     update_shoppinglist_parser, update_shoppinglist_item_parser, delete_shoppinglist_parser, \
-    delete_shoppinglist_item_parser
+    delete_shoppinglist_item_parser, paginate_query_parser
 from app.exceptions import InvalidToken, TokenExpired
 from app.models import ShoppingList, ns, registration_model, login_model, update_model, user_model, shopping_list_model, \
     update_shopping_list_model, delete_shopping_list_model, item_model, item_update_model, \
@@ -109,15 +110,34 @@ class AppUser(Resource):
 
 @ns.route("/shoppinglists")
 class ShoppingLists(Resource):
+    @api.response(404, "ShoppingList Does not Exist")
     @auth.login_required
+    @ns.expect(paginate_query_parser)
     def get(self):
         """
-        gets all shoppinglists of current user
+        gets all shoppinglists of current user if a query is not provided
+        and specific shoppinglist if a query is provided
         Note that an empty list will be retured in cases where there 
         is no shoppinglists 
         """
-        shopping_lists = ShoppingList.query.filter_by(owner_id=g.user.id).all()
-        return marshal(shopping_lists, shopping_lists_with_items_model)
+        args = paginate_query_parser.parse_args(request)
+        search_query = args.get("q")
+        page = args.get('page', 1)
+        limit = args.get("limit", 10)
+        if search_query:
+            """
+            gets shopping_list of current user specified by search_query
+            """
+            shopping_list = ShoppingList.query. \
+                filter_by(owner_id=g.user.id).filter_by(name=search_query).first()
+            if shopping_list:
+                return marshal(shopping_list, shopping_lists_with_items_model)
+            else:
+                return make_response(404, "Shopping List " + search_query, " Does Not Exist")
+        else:
+            shopping_lists = ShoppingList.query.filter_by(owner_id=g.user.id).\
+                paginate(page, limit, True).items
+            return marshal(shopping_lists, shopping_lists_with_items_model)
 
     @api.response(201, "ShoppingList Added Successfully")
     @api.response(409, "ShoppingList Already Exist")
@@ -179,6 +199,7 @@ class ShoppingLists(Resource):
             return make_response(200, "Shopping list " + name, " Deleted Successfully")
         else:
             return make_response(404, "Shopping list " + name, " Does not exist")
+
 
 
 @ns.route("/shoppinglist_items")
