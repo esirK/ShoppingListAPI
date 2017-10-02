@@ -154,12 +154,23 @@ class TestMain(unittest.TestCase):
 
         response = self.client.get(
             "/v_1/shoppinglists",
-            content_type='application/json', headers=self.headers)
+            headers=self.headers)
         self.assertEqual(2, len(json.loads(response.data)))
 
         x = json.loads(response.data)
 
         self.assertEqual(1, len(x[0]['items']))
+
+    def test_user_can_query_for_a_shopping_list(self):
+        """
+                Test a logged in user can search for a shoppinglists
+                """
+        self.create_shopping_lists("Family")
+        self.create_shopping_lists_item("Wine", 2500, 3, "Family")
+        response = self.client.get(
+            "/v_1/shoppinglists?q=Family",
+            headers=self.headers)
+        self.assertEqual(200, response.status_code)
 
     def test_shopping_list_name_is_unique(self):
         """
