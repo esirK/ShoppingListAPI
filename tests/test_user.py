@@ -39,8 +39,7 @@ class TestUser(unittest.TestCase):
 
     def test_verify_auth_token(self):
         user = User(username="rick", email="picklerick@gmail.com", password="Andela2017")
-        db.session.add(user)
-        db.session.commit()
+        user.save_user()
         """
         Making expiration -1 to indicate expired token
         """
