@@ -17,7 +17,7 @@ registration_model = ns.model('registration_args', {
     'password': fields.String(required=True, default="password")
 })
 login_model = ns.model('login_args', {
-    'email': fields.String(required=True, default="user.example.com"),
+    'email': fields.String(required=True, default="user@example.com"),
     'password': fields.String(required=True, default="password")
 })
 update_model = ns.model('update_args', {
@@ -28,6 +28,8 @@ update_model = ns.model('update_args', {
 user_model = ns.model('Model', {
     'name': fields.String(default="username"),
     'email': fields.String(default="user@example.com"),
+    'joined_on': fields.DateTime,
+    'date_modified': fields.DateTime
 })
 
 shopping_list_model = ns.model('shopping_list_model', {

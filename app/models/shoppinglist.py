@@ -12,6 +12,8 @@ class ShoppingList(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     items = db.relationship(Item, backref='container', lazy='dynamic')
     created_on = db.Column(db.DateTime(), default=datetime.utcnow)
+    modified_on = db.Column(db.DateTime(), default=datetime.utcnow,
+                            onupdate=datetime.utcnow)
 
     def __init__(self, name, description, owner):
         self.name = name
