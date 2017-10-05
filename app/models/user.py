@@ -62,7 +62,7 @@ class User(db.Model):
         """
         Updates A user Data. For account management
         """
-        self.password = password
+        self.set_password(password)
         self.username = username
         db.session.commit()
 

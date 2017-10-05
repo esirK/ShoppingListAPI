@@ -201,7 +201,6 @@ class ShoppingLists(Resource):
             return make_response(404, "Shopping list " + name, " Does not exist")
 
 
-
 @ns.route("/shoppinglist_items")
 class Items(Resource):
     @api.response(201, "Item Added Successfully")
@@ -296,9 +295,11 @@ class Items(Resource):
 
             else:
                 return make_response(404, "Item " + name,
-                                     "Does not Exist In shopping list '" + shopping_list.name + "'")
+                                     "Does not Exist In shopping list '" +
+                                     shopping_list.name + "'")
         else:
-            return make_response(404, "Shopping List " + shopping_list_name, "Does Not Exist")
+            return make_response(404, "Shopping List " + shopping_list_name,
+                                 "Does Not Exist")
 
     @api.response(200, "ShoppingList Item Deleted Successfully")
     @api.response(404, "ShoppingList or ShoppingList Item Does not Exist")

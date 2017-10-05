@@ -17,17 +17,17 @@ class TestMain(unittest.TestCase):
             db.drop_all()
             db.create_all()
             self.client = self.app.test_client()
-            self.headers = {
-                'Authorization': 'Basic %s' %
-                                 b64encode(b"tinyrick@gmail.com:python")
-                                     .decode("ascii")
-            }
             self.client.post("/v_1/register",
                              data=json.dumps({"name": "tinyrick",
                                               "password": "python",
                                               "email": "tinyrick@gmail.com"
                                               }),
                              content_type='application/json')
+            self.headers = {
+                'Authorization': 'Basic %s' %
+                                 b64encode(b"tinyrick@gmail.com:python")
+                                     .decode("ascii")
+            }
             res = self.client.get("/v_1/token", headers=self.headers)
             token = json.loads(res.data)['token']
             self.token_headers = {
