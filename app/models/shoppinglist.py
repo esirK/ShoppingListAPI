@@ -10,6 +10,8 @@ class ShoppingList(db.Model):
     name = db.Column(db.String(64))
     description = db.Column(db.String(180))
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    shared = db.Column(db.Boolen, default=False)
+    shared_by = db.Column(db.String(64))
     items = db.relationship(Item, backref='container', lazy='dynamic')
     created_on = db.Column(db.DateTime(), default=datetime.utcnow)
     modified_on = db.Column(db.DateTime(), default=datetime.utcnow,
@@ -29,6 +31,11 @@ class ShoppingList(db.Model):
         else:
             self.name = name
             self.description = description
+        db.session.commit()
+
+    def share(self, shared, shared_by):
+        self.shared = shared
+        self.shared_by = shared_by
         db.session.commit()
 
     def add_item(self, name, price, quantity, shoppinglist_id):

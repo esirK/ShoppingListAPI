@@ -7,11 +7,11 @@ from flask_httpauth import HTTPBasicAuth
 
 from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_parser, item_parser, \
     update_shoppinglist_parser, update_shoppinglist_item_parser, delete_shoppinglist_parser, \
-    delete_shoppinglist_item_parser, paginate_query_parser
+    delete_shoppinglist_item_parser, paginate_query_parser, share_shoppinglist_parser
 from app.exceptions import InvalidToken, TokenExpired
 from app.models import ShoppingList, ns, registration_model, login_model, update_model, user_model, shopping_list_model, \
     update_shopping_list_model, delete_shopping_list_model, item_model, item_update_model, \
-    delete_shopping_list_item_model, shopping_lists_with_items_model
+    delete_shopping_list_item_model, shopping_lists_with_items_model, share_shoppinglist_model
 from app.models.item import Item
 from app.models.user import User
 
@@ -199,6 +199,37 @@ class ShoppingLists(Resource):
             return make_response(200, "Shopping list " + name, " Deleted Successfully")
         else:
             return make_response(404, "Shopping list " + name, " Does not exist")
+
+
+@ns.route("/shoppinglists/share")
+class ShareShoppingLists(Resource):
+    @api.response(200, "Shopping list shared successfully")
+    @api.response(404, "Shopping list or email to share with doesn't exist")
+    @ns.expect(share_shoppinglist_model)
+    @auth.login_required
+    def post(self):
+        """
+        Shares supplied shopping list with the email provided.
+        """
+        args = share_shoppinglist_parser.parse_args()
+        name = args['name']
+        email = args['email']
+
+        # Find shopping list from db
+        shopping_list = ShoppingList.query.filter_by(name=name).\
+            filter_by(owner_id=g.user.id).first()
+        if shopping_list:
+            # shopping list exists just share it now
+            share_with = User.query.filter_by(email=email).first()
+            if share_with and email != g.user.email:
+                # the person exists
+                shopping_list.share(True, g.user.email)
+                make_response(200, "Shopping List "+name, " Shared Successfully")
+            else:
+                # person don't exist or you are the person
+                make_response(404, "Email: "+email, " Does not exists")
+        else:
+            make_response(404, "ShoppingList "+name, "Does Not Exist")
 
 
 @ns.route("/shoppinglist_items")
