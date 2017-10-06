@@ -71,6 +71,13 @@ class AppUsers(Resource):
 
 @ns.route("/user")
 class AppUser(Resource):
+    @auth.login_required
+    def get(self):
+        """
+        Get current user details
+        """
+        return marshal(g.user, user_model)
+
     @ns.expect(login_model)
     @api.response(401, "Unknown User or Invalid Credentials")
     def post(self):

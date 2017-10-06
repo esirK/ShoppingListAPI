@@ -26,7 +26,7 @@ update_model = ns.model('update_args', {
 })
 
 user_model = ns.model('Model', {
-    'name': fields.String(default="username"),
+    'username': fields.String(default="username"),
     'email': fields.String(default="user@example.com"),
     'joined_on': fields.DateTime,
     'date_modified': fields.DateTime
