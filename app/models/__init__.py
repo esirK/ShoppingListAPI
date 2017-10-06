@@ -46,8 +46,8 @@ delete_shopping_list_model = ns.model('delete_shopping_list_model', {
     'name': fields.String(default="Shopping List name")
 })
 share_shoppinglist_model = ns.model('share_shoppinglist_model', {
-    'name': fields.model.String(default="Shopping list name"),
-    'email': fields.model.String(default="sharewith@example.com"),
+    'name': fields.String(default="Shopping list name"),
+    'email': fields.String(default="sharewith@example.com"),
 })
 item_model = ns.model('item_model', {
     'name': fields.String(default="Name"),
