@@ -268,6 +268,61 @@ class TestMain(unittest.TestCase):
             content_type='application/json')  # No headers provided
         self.assertEqual(401, response.status_code)
 
+    def test_user_can_share_shopping_list(self):
+        """
+        Test a Logged in User Can Share a shopping list with other users
+        """
+        self.create_shopping_lists("Shares")
+        self.client.post("/v_1/register",
+                         data=json.dumps({"name": "tinyrick",
+                                          "password": "python",
+                                          "email": "esir@gmail.com"
+                                          }),
+                         content_type='application/json')
+
+        response = self.client.post(
+            "/v_1/shoppinglists/share",
+            data=json.dumps({
+                "name": "Shares",
+                "email": "esir@gmail.com"
+            }),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(200, response.status_code)
+        headers2 = {
+                'Authorization': 'Basic %s' %
+                                 b64encode(b"esir@gmail.com:python")
+                                     .decode("ascii")
+        }
+        res = self.client.get(
+            "/v_1/shoppinglists",
+            data=json.dumps({
+                "name": "Shares",
+                "email": "esir@gmail.com"
+            }),
+            content_type='application/json', headers=headers2)
+        self.assertEqual(1, len(json.loads(res.data)))
+
+    def test_shopping_list_cannot_be_shared_with_non_app_users(self):
+        self.create_shopping_lists("Shares")
+        response = self.client.post(
+            "/v_1/shoppinglists/share",
+            data=json.dumps({
+                "name": "Shares",
+                "email": "amnotthere@gmail.com"
+            }),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(404, response.status_code)
+
+    def test_non_existing_shopping_list_cannot_be_shared(self):
+        response = self.client.post(
+            "/v_1/shoppinglists/share",
+            data=json.dumps({
+                "name": "Shares",
+                "email": "esir@gmail.com"
+            }),
+            content_type='application/json', headers=self.headers)
+        self.assertEqual(404, response.status_code)
+
     def test_shopping_list_item_created_successfully(self):
         """
         Test a Logged In User Can Add items to their shopping_lists
