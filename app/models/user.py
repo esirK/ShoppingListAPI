@@ -63,8 +63,10 @@ class User(db.Model):
         """
         Updates A user Data. For account management
         """
-        self.set_password(password)
-        self.username = username
+        if password != "None":
+            self.set_password(password)
+        if username != "None":
+            self.username = username
         db.session.commit()
 
     def add_shopping_list(self, name, description):
