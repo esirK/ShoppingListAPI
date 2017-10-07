@@ -55,7 +55,7 @@ item_model = ns.model('item_model', {
     'quantity': fields.String(default="Quantity"),
     'shopping_list_name': fields.String(default="ShoppingList Name "),
 })
-result_item_model = ns.model('item_model', {
+result_item_model = ns.model('result_item_model', {
     'name': fields.String(default="Name"),
     'price': fields.String(default="Price"),
     'quantity': fields.String(default="Quantity"),

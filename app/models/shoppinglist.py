@@ -22,6 +22,13 @@ class ShoppingList(db.Model):
         self.description = description
         self.owner_id = owner.id
 
+    def __repr__(self):
+        """
+         string representation that can be used for debugging
+         and testing purposes.
+        """
+        return '<Shopping list %r> <owner %r>' % self.name % self.owner_id
+
     def update_shopping_list(self, name, description):
         """
         Updates Shopping List Data

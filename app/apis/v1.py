@@ -93,7 +93,8 @@ class AppUser(Resource):
             # User Found Check Password
             if user.check_password(password):
                 g.user = user
-                return marshal(user, user_model)
+                token = g.user.generate_auth_token(configurations=configuration, expiration=600)
+                return jsonify({'token': token.decode('ascii'), 'duration': 600})
             else:
                 return make_response(401, "Wrong Credentials ", " Provided")
 
@@ -231,12 +232,15 @@ class ShareShoppingLists(Resource):
             if share_with and email != g.user.email:
                 # the person exists
                 shopping_list.share(True, g.user.email)
-                make_response(200, "Shopping List "+name, " Shared Successfully")
+                if g.user.add_shared_shopping_list(shopping_list, share_with):
+                    return make_response(200, "Shopping List "+name, " Shared Successfully")
+                else:
+                    return make_response(200, "Shopping List " + name, " Not Shared")
             else:
                 # person don't exist or you are the person
-                make_response(404, "Email: "+email, " Does not exists")
+                return make_response(404, "Email: "+email, " Does not exists or its your email")
         else:
-            make_response(404, "ShoppingList "+name, "Does Not Exist")
+            return make_response(404, "ShoppingList "+name, "Does Not Exist")
 
 
 @ns.route("/shoppinglist_items")

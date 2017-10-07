@@ -3,6 +3,7 @@ from datetime import datetime
 import sqlalchemy
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired, BadSignature
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import make_transient
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import config
@@ -79,6 +80,24 @@ class User(db.Model):
         db.session.add(shopping_list)
         db.session.commit()
         return True
+
+    def add_shared_shopping_list(self, shopping_list, share_with):
+        # check if shopping list exist
+        shopping_lst = ShoppingList.query.filter_by(name=shopping_list.name)\
+            .filter_by(owner_id=share_with.id).first()
+
+        if shopping_lst:
+            # user has the shopping list
+            return False
+        else:
+            db.session.expunge(shopping_list)
+            make_transient(shopping_list)
+            shopping_list.id = None
+            shopping_list.owner_id = share_with.id
+            db.session.add(shopping_list)
+            db.session.flush()
+            db.session.commit()
+            return True
 
     def delete_shoppinglist(self, shoppinglist):
         db.session.delete(shoppinglist)
