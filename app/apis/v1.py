@@ -26,6 +26,11 @@ api = Api(bp, version='1.0', title='ShoppingList API',
           )
 
 
+@bp.app_errorhandler(404)
+def page_not_found(e):
+    return jsonify({"message": "not found"})
+
+
 @auth.verify_password
 def verify_password(email_or_token, password):
     """
