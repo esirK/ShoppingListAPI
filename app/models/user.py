@@ -73,12 +73,15 @@ class User(db.Model):
         """
         Adds a ShoppingList to this user account
         """
+        shopping_lst = ShoppingList.query.filter_by(name=name)\
+            .filter_by(owner_id=self.id).first()
+        if shopping_lst:
+            # user has the shopping list
+            return False
+
         shopping_list = ShoppingList(name=name, description=description,
                                      owner=self)
-        shopping_lsts = ShoppingList.query.filter_by(name=name).all()
-        for shopping_lst in shopping_lsts:
-            if shopping_lst.owner_id == self.id:
-                return False
+
         db.session.add(shopping_list)
         db.session.commit()
         return True
