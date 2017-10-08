@@ -40,6 +40,7 @@ Shopping List API is a flask API that allows clients to Interact with the Shoppi
 | /shoppinglists | POST | Create a new shopping list|TRUE
 | /shoppinglists | PUT | Update a shopping list|TRUE
 | /shoppinglists | DELETE | Deletes a shopping list|TRUE
+| /shoppinglists/share | POST | Shares a shopping list with another User|TRUE
 | /shoppinglist_items | POST | Creates a shopping list item|TRUE
 | /shoppinglist_items | PUT | Updates a shopping list item|TRUE
 | /shoppinglist_items | DELETE | Deletes a shopping list item|TRUE
