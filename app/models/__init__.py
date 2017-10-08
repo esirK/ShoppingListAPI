@@ -21,8 +21,8 @@ login_model = ns.model('login_args', {
     'password': fields.String(required=True, default="password")
 })
 update_model = ns.model('update_args', {
-    'name': fields.String(required=True, default="username"),
-    'password': fields.String(required=True, default="password")
+    'name': fields.String(required=True, default="None"),
+    'password': fields.String(required=True, default="None")
 })
 
 user_model = ns.model('Model', {

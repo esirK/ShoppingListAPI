@@ -28,7 +28,7 @@ api = Api(bp, version='1.0', title='ShoppingList API',
 
 
 @bp.app_errorhandler(404)
-def page_not_found():
+def page_not_found(e):
     return jsonify({"message": "not found"})
 
 

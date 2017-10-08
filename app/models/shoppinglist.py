@@ -33,11 +33,10 @@ class ShoppingList(db.Model):
         """
         Updates Shopping List Data
         """
-        if description == "None":
-            self.name = name
-        else:
-            self.name = name
+        if description != "None":
             self.description = description
+        if name != "None":
+            self.name = name
         db.session.commit()
 
     def share(self, shared, shared_by):

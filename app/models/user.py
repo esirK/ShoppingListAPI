@@ -92,7 +92,7 @@ class User(db.Model):
             .filter_by(owner_id=share_with.id).first()
 
         if shopping_lst:
-            # user has the shopping list
+            # user has the shopping list already
             return False
         else:
             db.session.expunge(shopping_list)
