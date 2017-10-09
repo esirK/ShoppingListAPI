@@ -19,13 +19,13 @@ class TestMain(unittest.TestCase):
             self.client = self.app.test_client()
             self.client.post("/v_1/register",
                              data=json.dumps({"name": "tinyrick",
-                                              "password": "python",
+                                              "password": "python8",
                                               "email": "tinyrick@gmail.com"
                                               }),
                              content_type='application/json')
             self.headers = {
                 'Authorization': 'Basic %s' %
-                                 b64encode(b"tinyrick@gmail.com:python")
+                                 b64encode(b"tinyrick@gmail.com:python8")
                                      .decode("ascii")
             }
             res = self.client.get("/v_1/token", headers=self.headers)
@@ -40,7 +40,7 @@ class TestMain(unittest.TestCase):
         """Test if a user is created using the api"""
         response = self.client.post("/v_1/register",
                                     data=json.dumps({"name": "esirick",
-                                                     "password": "morty",
+                                                     "password": "morty11",
                                                      "email": "esimorty@gmail.com"
                                                      }),
                                     content_type='application/json')
@@ -49,13 +49,13 @@ class TestMain(unittest.TestCase):
             "Already Exists",
             self.client.post("/v_1/register",
                              data=json.dumps({"name": "esirick",
-                                              "password": "python",
+                                              "password": "python8",
                                               "email": "esimorty@gmail.com"
                                               }),
                              content_type='application/json').data.decode())
         response_no_arg = self.client.post("/v_1/register",
                                            data=json.dumps({"name": "esirick",
-                                                            "password": "python",
+                                                            "password": "python8",
                                                             "email": "  "
                                                             }),
                                            content_type='application/json')
@@ -87,14 +87,14 @@ class TestMain(unittest.TestCase):
         self.client.post(
             "/v_1/register",
             data=json.dumps({"name": "esirick",
-                             "password": "morty",
+                             "password": "morty00",
                              "email": "mortymorty@gmail.com"
                              }),
             content_type='application/json')
         response = self.client.post(
             "/v_1/user",
             data=json.dumps({
-                "password": "morty",
+                "password": "morty00",
                 "email": "mortymorty@gmail.com"
             }),
             content_type='application/json')
@@ -105,11 +105,11 @@ class TestMain(unittest.TestCase):
         Test If A Registered User Can Login to the app using
         Invalid Credentials
          """
-        # email "tinyrick@gmail.com" was created on setup but with 'python' as the pass
+        # email "tinyrick@gmail.com" was created on setup but with 'python8' as the pass
         response = self.client.post(
             "/v_1/user",
             data=json.dumps({
-                "password": "morty",
+                "password": "morty00",
                 "email": "tinyrick@gmail.com"
             }),
             content_type='application/json')
@@ -122,7 +122,7 @@ class TestMain(unittest.TestCase):
         response = self.client.post(
             "/v_1/user",
             data=json.dumps({
-                "password": "morty",
+                "password": "morty00",
                 "email": "notregistered@gmail.com"
             }),
             content_type='application/json')
@@ -158,6 +158,7 @@ class TestMain(unittest.TestCase):
         self.assertEqual(2, len(json.loads(response.data)))
 
         x = json.loads(response.data)
+        print(x)
 
         self.assertEqual(1, len(x[0]['items']))
 
@@ -223,7 +224,7 @@ class TestMain(unittest.TestCase):
         response = self.client.put(
             "/v_1/shoppinglists",
             data=json.dumps({
-                "name": "I Don't Exist",
+                "name": "I Do not Exist",
                 "new_name": "I Exist",
                 "description": "None"
             }),
@@ -275,7 +276,7 @@ class TestMain(unittest.TestCase):
         self.create_shopping_lists("Shares")
         self.client.post("/v_1/register",
                          data=json.dumps({"name": "tinyrick",
-                                          "password": "python",
+                                          "password": "python8",
                                           "email": "esir@gmail.com"
                                           }),
                          content_type='application/json')
@@ -289,9 +290,9 @@ class TestMain(unittest.TestCase):
             content_type='application/json', headers=self.headers)
         self.assertEqual(200, response.status_code)
         headers2 = {
-                'Authorization': 'Basic %s' %
-                                 b64encode(b"esir@gmail.com:python")
-                                     .decode("ascii")
+            'Authorization': 'Basic %s' %
+                             b64encode(b"esir@gmail.com:python8")
+                                 .decode("ascii")
         }
         res = self.client.get(
             "/v_1/shoppinglists",

@@ -8,6 +8,7 @@ from flask_httpauth import HTTPBasicAuth
 from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_parser, item_parser, \
     update_shoppinglist_parser, update_shoppinglist_item_parser, delete_shoppinglist_parser, \
     delete_shoppinglist_item_parser, paginate_query_parser, share_shoppinglist_parser
+from app.apis.validators import password_validator, name_validalidatior, price_quantity_validator
 from app.exceptions import InvalidToken, TokenExpired
 from app.models import ShoppingList, ns, registration_model, login_model, update_model, user_model, \
     shopping_list_model, \
@@ -54,7 +55,7 @@ def verify_password(email_or_token, password):
 
 
 @ns.route("/register")
-@ns.expect(registration_model)
+@ns.expect(registration_model, validate=True)
 class AppUsers(Resource):
     @api.response(201, "User Registered Successfully")
     @api.response(409, "User Already Exists")
@@ -67,12 +68,20 @@ class AppUsers(Resource):
         username = args['name']
         password = args['password']
 
+        invalid_name = name_validalidatior(username, "User ")
+
+        if invalid_name:
+            return invalid_name
+
+        if password_validator(password):
+            return password_validator(password)
+
         if User.query.filter_by(email=email).first() is not None:
-            return make_response(409, email, " Already Exists")  # existing user
+            return make_json_response(409, email, " Already Exists")  # existing user
 
         user = User(email=email, username=username, password=password)
         user.save_user()
-        return make_response(201, user.username, " Created Successfully")
+        return make_json_response(201, user.username, " Created Successfully")
 
 
 @ns.route("/user")
@@ -84,7 +93,7 @@ class AppUser(Resource):
         """
         return marshal(g.user, user_model)
 
-    @ns.expect(login_model)
+    @ns.expect(login_model, validate=True)
     @api.response(401, "Unknown User or Invalid Credentials")
     def post(self):
         """
@@ -104,13 +113,13 @@ class AppUser(Resource):
                 return jsonify({'token': token.decode('ascii'),
                                 'duration': 600})
             else:
-                return make_response(401, "Wrong Credentials ", " Provided")
+                return make_json_response(401, "Wrong Credentials ", " Provided")
 
         else:
-            return make_response(401, "No User Registered With " + email,
-                                 " Exists")
+            return make_json_response(401, "No User Registered With " + email,
+                                      " Exists")
 
-    @ns.expect(update_model)
+    @ns.expect(update_model, validate=True)
     @auth.login_required
     @api.response(200, "User Credentials Updated Successfully")
     def put(self):
@@ -123,15 +132,27 @@ class AppUser(Resource):
         args = update_parser.parse_args()
         username = args['name']
         password = args['password']
+        invalid_name = name_validalidatior(username, "Users")
+        if invalid_name:
+            return invalid_name
+
+        invalid_password = password_validator(password)
+        if invalid_password:
+            return invalid_password
+
         User.update_user(g.user, username=username, password=password)
-        return marshal(g.user, user_model)
+        response = {
+            "message": "User Updated successfully",
+            "User": marshal(g.user, user_model)
+        }
+        return response
 
 
 @ns.route("/shoppinglists")
 class ShoppingLists(Resource):
     @api.response(404, "ShoppingList Does not Exist")
     @auth.login_required
-    @ns.expect(paginate_query_parser)
+    @ns.expect(paginate_query_parser, validate=True)
     def get(self):
         """
         gets all shopping lists of current user if a query is not provided.
@@ -152,16 +173,16 @@ class ShoppingLists(Resource):
             if shopping_list:
                 return marshal(shopping_list, shopping_lists_with_items_model)
             else:
-                return make_response(404, "Shopping List " + search_query,
-                                     " Does Not Exist")
+                return make_json_response(404, "Shopping List " + search_query,
+                                          " Does Not Exist")
         else:
-            shopping_lists = ShoppingList.query.filter_by(owner_id=g.user.id).\
+            shopping_lists = ShoppingList.query.filter_by(owner_id=g.user.id). \
                 paginate(page, limit, True).items
             return marshal(shopping_lists, shopping_lists_with_items_model)
 
     @api.response(201, "ShoppingList Added Successfully")
     @api.response(409, "ShoppingList Already Exist")
-    @ns.expect(shopping_list_model)
+    @ns.expect(shopping_list_model, validate=True)
     @auth.login_required
     def post(self):
         """
@@ -170,16 +191,21 @@ class ShoppingLists(Resource):
         args = shoppinglist_parser.parse_args()
         name = args['name']
         description = args['description']
+
+        invalid_name = name_validalidatior(name, "Shopping List")
+        if invalid_name:
+            return invalid_name
+
         if g.user.add_shopping_list(name=name, description=description):
-            return make_response(201, "Shopping list " + name,
-                                 " Created Successfully")
+            return make_json_response(201, "Shopping list " + name,
+                                      " Created Successfully")
         else:
-            return make_response(409, "Shopping list " + name,
-                                 " Already Exists")
+            return make_json_response(409, "Shopping list " + name,
+                                      " Already Exists")
 
     @api.response(200, "ShoppingList Updated Successfully")
     @api.response(404, "ShoppingList Does not Exist")
-    @ns.expect(update_shopping_list_model)
+    @ns.expect(update_shopping_list_model, validate=True)
     @auth.login_required
     def put(self):
         """
@@ -192,21 +218,25 @@ class ShoppingLists(Resource):
         new_name = args['new_name']
         description = args['description']
 
+        invalid_name = name_validalidatior(name, "Shopping List")
+        if invalid_name:
+            return invalid_name
+
         # Get shopping list
         shopping_list = ShoppingList.query.filter_by(name=name).first()
         if shopping_list is not None:
             # We got the shopping list. Now Update it
             shopping_list.update_shopping_list(new_name, description)
-            return make_response(200, "Shopping list " + name,
-                                 " Updated Successfully")
+            return make_json_response(200, "Shopping list " + name,
+                                      " Updated Successfully")
 
         else:
-            return make_response(404, "Shopping list " + name,
-                                 " Does not exist")
+            return make_json_response(404, "Shopping list " + name,
+                                      " Does not exist")
 
     @api.response(200, "ShoppingList Deleted Successfully")
     @api.response(404, "ShoppingList Does not Exist")
-    @ns.expect(delete_shopping_list_model)
+    @ns.expect(delete_shopping_list_model, validate=True)
     @auth.login_required
     def delete(self):
         """
@@ -214,23 +244,28 @@ class ShoppingLists(Resource):
         """
         args = delete_shoppinglist_parser.parse_args()
         name = args['name']
+
+        invalid_name = name_validalidatior(name, "Shopping List")
+        if invalid_name:
+            return invalid_name
+
         # Get the shopping list specified and belonging to current user
         shopping_list = ShoppingList.query.filter_by(name=name) \
             .filter_by(owner_id=g.user.id).first()
         if shopping_list is not None:
             g.user.delete_shoppinglist(shopping_list)
-            return make_response(200, "Shopping list " + name,
-                                 " Deleted Successfully")
+            return make_json_response(200, "Shopping list " + name,
+                                      " Deleted Successfully")
         else:
-            return make_response(404, "Shopping list " + name,
-                                 " Does not exist")
+            return make_json_response(404, "Shopping list " + name,
+                                      " Does not exist")
 
 
 @ns.route("/shoppinglists/share")
 class ShareShoppingLists(Resource):
     @api.response(200, "Shopping list shared successfully")
     @api.response(404, "Shopping list or email to share with doesn't exist")
-    @ns.expect(share_shoppinglist_model)
+    @ns.expect(share_shoppinglist_model, validate=True)
     @auth.login_required
     def post(self):
         """
@@ -240,8 +275,12 @@ class ShareShoppingLists(Resource):
         name = args['name']
         email = args['email']
 
+        invalid_name = name_validalidatior(name, "Shopping List")
+        if invalid_name:
+            return invalid_name
+
         # Find shopping list from db
-        shopping_list = ShoppingList.query.filter_by(name=name).\
+        shopping_list = ShoppingList.query.filter_by(name=name). \
             filter_by(owner_id=g.user.id).first()
         if shopping_list:
             # shopping list exists just share it now
@@ -250,17 +289,17 @@ class ShareShoppingLists(Resource):
                 # the person exists
                 if g.user.add_shared_shopping_list(shopping_list, share_with):
                     shopping_list.share(True, g.user.email)
-                    return make_response(200, "Shopping List "+name,
-                                         " Shared Successfully")
+                    return make_json_response(200, "Shopping List " + name,
+                                              " Shared Successfully")
                 else:
-                    return make_response(200, "Shopping List " + name,
-                                         " Not Shared")
+                    return make_json_response(200, "Shopping List " + name,
+                                              " Not Shared")
             else:
                 # person don't exist or you are the person
-                return make_response(404, "Email: "+email,
-                                     " Does not exists or its your email")
+                return make_json_response(404, "Email: " + email,
+                                          " Does not exists or its your email")
         else:
-            return make_response(404, "ShoppingList "+name, "Does Not Exist")
+            return make_json_response(404, "ShoppingList " + name, "Does Not Exist")
 
 
 @ns.route("/shoppinglist_items")
@@ -283,6 +322,14 @@ class Items(Resource):
         shopping_list_name = args['shopping_list_name']
         # get shoppinglist from db
 
+        invalid_name = name_validalidatior(name, "Shopping List Item")
+        if invalid_name or name_validalidatior(shopping_list_name, "Shopping List"):
+            return invalid_name
+
+        invalid_price = price_quantity_validator(price)
+        if invalid_price or price_quantity_validator(quantity):
+            return invalid_price
+
         shopping_list = ShoppingList.query.filter_by(name=shopping_list_name) \
             .filter_by(owner_id=g.user.id).first()
         if shopping_list:
@@ -290,13 +337,13 @@ class Items(Resource):
             if shopping_list.add_item(name=name, price=price,
                                       quantity=quantity,
                                       shoppinglist_id=shopping_list):
-                return make_response(201, "Item " + name, " Added Successfully")
+                return make_json_response(201, "Item " + name, " Added Successfully")
 
             else:
-                return make_response(409, "Item " + name, " Already exist")
+                return make_json_response(409, "Item " + name, " Already exist")
 
-        return make_response(404, "Shoppinglist " + shopping_list_name,
-                             " Not Found")
+        return make_json_response(404, "Shoppinglist " + shopping_list_name,
+                                  " Not Found")
 
     @api.response(200, "ShoppingList Item Updated Successfully")
     @api.response(404, "ShoppingList Item or Shopping List Does not Exist")
@@ -344,31 +391,31 @@ class Items(Resource):
                                          shoppinglist=new_shopping_list)
 
                     else:
-                        return make_response(404, "The new Shopping List " +
-                                             "'" +
-                                             new_shopping_list_name +
-                                             "'",
-                                             " Does not Exist")
+                        return make_json_response(404, "The new Shopping List " +
+                                                  "'" +
+                                                  new_shopping_list_name +
+                                                  "'",
+                                                  " Does not Exist")
 
                 else:
                     item.update_item(name=new_name, price=price,
                                      quantity=quantity,
                                      shoppinglist=shopping_list)
 
-                return make_response(200, "Item " + "'" + name + "'",
-                                     " Successfully Updated")
+                return make_json_response(200, "Item " + "'" + name + "'",
+                                          " Successfully Updated")
 
             else:
-                return make_response(404, "Item " + name,
-                                     "Does not Exist In shopping list '" +
-                                     shopping_list.name + "'")
+                return make_json_response(404, "Item " + name,
+                                          "Does not Exist In shopping list '" +
+                                          shopping_list.name + "'")
         else:
-            return make_response(404, "Shopping List " + shopping_list_name,
-                                 "Does Not Exist")
+            return make_json_response(404, "Shopping List " + shopping_list_name,
+                                      "Does Not Exist")
 
     @api.response(200, "ShoppingList Item Deleted Successfully")
     @api.response(404, "ShoppingList or ShoppingList Item Does not Exist")
-    @ns.expect(delete_shopping_list_item_model)
+    @ns.expect(delete_shopping_list_item_model, validate=True)
     @auth.login_required
     def delete(self):
         """
@@ -388,17 +435,17 @@ class Items(Resource):
                 filter_by(shoppinglist_id=shopping_list.id).first()
             if item:
                 shopping_list.delete_item(item)
-                return make_response(200, "Item " + name,
-                                     " Deleted Successfully")
+                return make_json_response(200, "Item " + name,
+                                          " Deleted Successfully")
             else:
-                return make_response(404, "Item " + name,
-                                     " Does Not Exist.")
+                return make_json_response(404, "Item " + name,
+                                          " Does Not Exist.")
         else:
-            return make_response(404, "ShoppingList " + shopping_list_name,
-                                 "Does not Exist.")
+            return make_json_response(404, "ShoppingList " + shopping_list_name,
+                                      "Does not Exist.")
 
 
-def make_response(status_code, name_obj, message):
+def make_json_response(status_code, name_obj, message):
     response = jsonify({'message': name_obj + " " + message})
     response.status_code = status_code
     return response
