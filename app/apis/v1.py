@@ -171,14 +171,22 @@ class ShoppingLists(Resource):
             shopping_list = ShoppingList.query. \
                 filter_by(owner_id=g.user.id).filter_by(name=search_query).first()
             if shopping_list:
-                return marshal(shopping_list, shopping_lists_with_items_model)
+                response = {
+                    "shopping_list": marshal(shopping_list, shopping_lists_with_items_model),
+                    "message": "1 Shopping List Available"
+                }
+                return response
             else:
                 return make_json_response(404, "Shopping List " + search_query,
                                           " Does Not Exist")
         else:
             shopping_lists = ShoppingList.query.filter_by(owner_id=g.user.id). \
                 paginate(page, limit, True).items
-            return marshal(shopping_lists, shopping_lists_with_items_model)
+            response = {
+                "shopping_lists": marshal(shopping_lists, shopping_lists_with_items_model),
+                "message": str(len(shopping_lists)) + "  Shopping List Available"
+            }
+            return response
 
     @api.response(201, "ShoppingList Added Successfully")
     @api.response(409, "ShoppingList Already Exist")
@@ -253,7 +261,8 @@ class ShoppingLists(Resource):
         shopping_list = ShoppingList.query.filter_by(name=name) \
             .filter_by(owner_id=g.user.id).first()
         if shopping_list is not None:
-            g.user.delete_shoppinglist(shopping_list)
+            items = Item.query.filter_by(shoppinglist_id=shopping_list.id).all()
+            g.user.delete_shoppinglist(shopping_list, items)
             return make_json_response(200, "Shopping list " + name,
                                       " Deleted Successfully")
         else:

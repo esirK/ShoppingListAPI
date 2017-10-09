@@ -104,8 +104,11 @@ class User(db.Model):
             db.session.commit()
             return True
 
-    def delete_shoppinglist(self, shoppinglist):
+    def delete_shoppinglist(self, shoppinglist, items):
         db.session.delete(shoppinglist)
+        for item in items:
+            db.session.delete(item)
+
         db.session.commit()
 
     @staticmethod
