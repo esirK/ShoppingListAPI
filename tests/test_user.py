@@ -4,6 +4,7 @@ from app import create_app
 from app.init_db import db
 
 from app.models.user import User
+from app.controller import save_user
 
 
 class TestUser(unittest.TestCase):
@@ -39,7 +40,7 @@ class TestUser(unittest.TestCase):
 
     def test_verify_auth_token(self):
         user = User(username="rick", email="picklerick@gmail.com", password="Andela2017")
-        user.save_user()
+        save_user(user)
         """
         Making expiration -1 to indicate expired token
         """

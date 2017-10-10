@@ -16,6 +16,8 @@ from app.models import ShoppingList, ns, registration_model, login_model, update
     delete_shopping_list_item_model, shopping_lists_with_items_model, share_shoppinglist_model
 from app.models.item import Item
 from app.models.user import User
+from app.controller import save_user, add_shopping_list, add_shared_shopping_list, delete_shoppinglist, update_user, \
+    update_shopping_list, share, add_item, delete_item
 
 configuration = os.environ.get('CURRENT_CONFIG')
 
@@ -80,7 +82,7 @@ class AppUsers(Resource):
             return make_json_response(409, email, " Already Exists")  # existing user
 
         user = User(email=email, username=username, password=password)
-        user.save_user()
+        save_user(user)
         return make_json_response(201, user.username, " Created Successfully")
 
 
@@ -140,7 +142,7 @@ class AppUser(Resource):
             return {
                 "message": "No Updates Were Made"
             }
-        User.update_user(g.user, username=username, password=password)
+        update_user(g.user, username=username, password=password)
         response = {
             "message": "User Updated successfully",
             "User": marshal(g.user, user_model)
@@ -198,7 +200,7 @@ class ShoppingLists(Resource):
         if invalid_name:
             return invalid_name
 
-        if g.user.add_shopping_list(name=name, description=description):
+        if add_shopping_list(g.user, name=name, description=description):
             return make_json_response(201, "Shopping list " + name,
                                       " Created Successfully")
         else:
@@ -228,7 +230,7 @@ class ShoppingLists(Resource):
         shopping_list = ShoppingList.query.filter_by(name=name).first()
         if shopping_list is not None:
             # We got the shopping list. Now Update it
-            shopping_list.update_shopping_list(new_name, description)
+            update_shopping_list(shopping_list, new_name, description)
             return make_json_response(200, "Shopping list " + name,
                                       " Updated Successfully")
 
@@ -256,7 +258,7 @@ class ShoppingLists(Resource):
             .filter_by(owner_id=g.user.id).first()
         if shopping_list is not None:
             items = Item.query.filter_by(shoppinglist_id=shopping_list.id).all()
-            g.user.delete_shoppinglist(shopping_list, items)
+            delete_shoppinglist(shopping_list, items)
             return make_json_response(200, "Shopping list " + name,
                                       " Deleted Successfully")
         else:
@@ -290,8 +292,8 @@ class ShareShoppingLists(Resource):
             share_with = User.query.filter_by(email=email).first()
             if share_with and email != g.user.email:
                 # the person exists
-                if g.user.add_shared_shopping_list(shopping_list, share_with):
-                    shopping_list.share(True, g.user.email)
+                if add_shared_shopping_list(shopping_list, share_with):
+                    share(shopping_list, True, g.user.email)
                     return make_json_response(200, "Shopping List " + name,
                                               " Shared Successfully")
                 else:
@@ -337,9 +339,9 @@ class Items(Resource):
             .filter_by(owner_id=g.user.id).first()
         if shopping_list:
             # Eureka!!! we found the shopping list add the item now
-            if shopping_list.add_item(name=name, price=price,
-                                      quantity=quantity,
-                                      shoppinglist_id=shopping_list):
+            if add_item(shopping_list, name=name, price=price,
+                        quantity=quantity,
+                        shoppinglist_id=shopping_list):
                 return make_json_response(201, "Item " + name, " Added Successfully")
 
             else:
@@ -437,7 +439,7 @@ class Items(Resource):
             item = Item.query.filter_by(name=name). \
                 filter_by(shoppinglist_id=shopping_list.id).first()
             if item:
-                shopping_list.delete_item(item)
+                delete_item(item)
                 return make_json_response(200, "Item " + name,
                                           " Deleted Successfully")
             else:

@@ -1,14 +1,10 @@
 from datetime import datetime
 
-import sqlalchemy
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired, BadSignature
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import make_transient
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import config
 from app.init_db import db
-from app.exceptions import UserAlreadyExist
 from app.models.shoppinglist import ShoppingList
 
 
@@ -47,69 +43,6 @@ class User(db.Model):
     def generate_auth_token(self, expiration=600, configurations=""):
         s = Serializer(config[configurations].SECRET_KEY, expires_in=expiration)
         return s.dumps({'id': self.id})
-
-    def save_user(self):
-        """
-        Adds current user into the Database
-        """
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except sqlalchemy.exc.IntegrityError:
-            raise UserAlreadyExist
-        return True
-
-    def update_user(self, username, password):
-        """
-        Updates A user Data. For account management
-        """
-        if password != "None":
-            self.set_password(password)
-        if username != "None":
-            self.username = username
-        db.session.commit()
-
-    def add_shopping_list(self, name, description):
-        """
-        Adds a ShoppingList to this user account
-        """
-        shopping_lst = ShoppingList.query.filter_by(name=name)\
-            .filter_by(owner_id=self.id).first()
-        if shopping_lst:
-            # user has the shopping list
-            return False
-
-        shopping_list = ShoppingList(name=name, description=description,
-                                     owner=self)
-
-        db.session.add(shopping_list)
-        db.session.commit()
-        return True
-
-    def add_shared_shopping_list(self, shopping_list, share_with):
-        # check if shopping list exist
-        shopping_lst = ShoppingList.query.filter_by(name=shopping_list.name)\
-            .filter_by(owner_id=share_with.id).first()
-
-        if shopping_lst:
-            # user has the shopping list already
-            return False
-        else:
-            db.session.expunge(shopping_list)
-            make_transient(shopping_list)
-            shopping_list.id = None
-            shopping_list.owner_id = share_with.id
-            db.session.add(shopping_list)
-            db.session.flush()
-            db.session.commit()
-            return True
-
-    def delete_shoppinglist(self, shoppinglist, items):
-        db.session.delete(shoppinglist)
-        for item in items:
-            db.session.delete(item)
-
-        db.session.commit()
 
     @staticmethod
     def verify_auth_token(token, configuration):
