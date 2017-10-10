@@ -18,7 +18,7 @@ update_parser.add_argument('password', type=str, required=True,
 
 shoppinglist_parser = reqparse.RequestParser()
 shoppinglist_parser.add_argument('name', type=str, required=True,
-                                 help='Shoppinglist Name')
+                                 help='Shoppinglist name required')
 
 shoppinglist_parser.add_argument('description', type=str, required=True,
                                  help='Shoppinglist description')
@@ -38,8 +38,8 @@ share_shoppinglist_parser.add_argument('email', type=inputs.email(), required=Tr
                                        help='Email to share with')
 
 delete_shoppinglist_parser = reqparse.RequestParser()
-delete_shoppinglist_parser.add_argument('name', type=str, required=True,
-                                        help='Name of Shoppinglist to delete')
+delete_shoppinglist_parser.add_argument('id', type=str, required=True,
+                                        help='Shoppinglist ID required')
 
 item_parser = reqparse.RequestParser()
 item_parser.add_argument('name', type=str, required=True,

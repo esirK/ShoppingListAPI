@@ -250,22 +250,22 @@ class ShoppingLists(Resource):
         Deletes a shopping list 
         """
         args = delete_shoppinglist_parser.parse_args()
-        name = args['name']
+        shoppinglist_id = args.get('id')
 
-        invalid_name = name_validalidatior(name, "Shopping List")
-        if invalid_name:
-            return invalid_name
+        invalid_id = numbers_validator(shoppinglist_id)
+        if invalid_id:
+            return invalid_id
 
         # Get the shopping list specified and belonging to current user
-        shopping_list = ShoppingList.query.filter_by(name=name) \
+        shopping_list = ShoppingList.query.filter_by(id=shoppinglist_id) \
             .filter_by(owner_id=g.user.id).first()
         if shopping_list is not None:
             items = Item.query.filter_by(shoppinglist_id=shopping_list.id).all()
             delete_shoppinglist(shopping_list, items)
-            return make_json_response(200, "Shopping list " + name,
+            return make_json_response(200, "Shopping list " + shopping_list.name,
                                       " Deleted Successfully")
         else:
-            return make_json_response(404, "Shopping list " + name,
+            return make_json_response(404, "Shopping list with ID " + shoppinglist_id,
                                       " Does not exist")
 
 

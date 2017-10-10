@@ -43,7 +43,7 @@ update_shopping_list_model = ns.model('update_shopping_list_model', {
     'description': fields.String(default="None"),
 })
 delete_shopping_list_model = ns.model('delete_shopping_list_model', {
-    'name': fields.String(default="Shopping List name")
+    'id': fields.String(default="id")
 })
 share_shoppinglist_model = ns.model('share_shoppinglist_model', {
     'name': fields.String(default="Shopping list name"),
