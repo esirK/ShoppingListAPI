@@ -30,7 +30,7 @@ api = Api(bp, version='1.0', title='ShoppingList API',
 
 @bp.app_errorhandler(404)
 def page_not_found(e):
-    return jsonify({"message": "not found"})
+    return jsonify({"message": "not found"}), 404
 
 
 @auth.verify_password
@@ -136,10 +136,10 @@ class AppUser(Resource):
         if invalid_name:
             return invalid_name
 
-        invalid_password = password_validator(password)
-        if invalid_password:
-            return invalid_password
-
+        if username == "None" and password == "None":
+            return {
+                "message": "No Updates Were Made"
+            }
         User.update_user(g.user, username=username, password=password)
         response = {
             "message": "User Updated successfully",
