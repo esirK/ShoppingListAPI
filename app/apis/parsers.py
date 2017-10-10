@@ -18,22 +18,22 @@ update_parser.add_argument('password', type=str, required=True,
 
 shoppinglist_parser = reqparse.RequestParser()
 shoppinglist_parser.add_argument('name', type=str, required=True,
-                                 help='Shoppinglist name required')
+                                 help='Shoppinglist name Not Provided')
 
 shoppinglist_parser.add_argument('description', type=str, required=True,
-                                 help='Shoppinglist description')
+                                 help='Shoppinglist description Not Provided')
 
 update_shoppinglist_parser = reqparse.RequestParser()
 update_shoppinglist_parser.add_argument('id', type=str, required=True,
-                                        help='Shoppinglist id required')
+                                        help='Shoppinglist Not Provided')
 update_shoppinglist_parser.add_argument('new_name', type=str,
                                         help='New Shoppinglist Name')
 shoppinglist_parser.add_argument('description', type=str,
                                  help='Shoppinglist description')
 
 share_shoppinglist_parser = reqparse.RequestParser()
-share_shoppinglist_parser.add_argument('name', type=str, required=True,
-                                       help='Shoppinglist Name')
+share_shoppinglist_parser.add_argument('id', type=str, required=True,
+                                       help='Shoppinglist id Not Provided')
 share_shoppinglist_parser.add_argument('email', type=inputs.email(), required=True,
                                        help='Email to share with')
 

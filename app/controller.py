@@ -49,7 +49,7 @@ def add_shopping_list(user, name, description):
 
 def add_shared_shopping_list(shopping_list, share_with):
     # check if shopping list exist
-    shopping_lst = ShoppingList.query.filter_by(name=shopping_list.name) \
+    shopping_lst = ShoppingList.query.filter_by(id=shopping_list.id) \
         .filter_by(owner_id=share_with.id).first()
 
     if shopping_lst:

@@ -37,6 +37,11 @@ shopping_list_model = ns.model('shopping_list_model', {
     'description': fields.String(default="Short description..."),
 })
 
+shopping_list_display_model = shopping_list_model.clone(
+    'shopping_list_display_model', {
+        'shared': fields.String(default="False"),
+        'shared_by': fields.String(default="nobody")
+    })
 update_shopping_list_model = ns.model('update_shopping_list_model', {
     'id': fields.String(default="id"),
     'new_name': fields.String(default="New name"),
@@ -46,7 +51,7 @@ delete_shopping_list_model = ns.model('delete_shopping_list_model', {
     'id': fields.String(default="id")
 })
 share_shoppinglist_model = ns.model('share_shoppinglist_model', {
-    'name': fields.String(default="Shopping list name"),
+    'id': fields.String(default="id"),
     'email': fields.String(default="sharewith@example.com"),
 })
 item_model = ns.model('item_model', {
@@ -60,7 +65,7 @@ result_item_model = ns.model('result_item_model', {
     'price': fields.String(default="Price"),
     'quantity': fields.String(default="Quantity"),
 })
-shopping_lists_with_items_model = shopping_list_model. \
+shopping_lists_with_items_model = shopping_list_display_model. \
     clone('shopping_lists_with_items_model',
           {
               'items': fields.List(fields.Nested(result_item_model)),

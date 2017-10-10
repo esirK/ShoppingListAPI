@@ -116,7 +116,7 @@ class TestShoppingList(BaseTest):
         response = self.client.delete(
             "/v_1/shoppinglists",
             data=json.dumps({
-                "name": "Gaming"
+                "id": "1"
             }),
             content_type='application/json', headers=self.headers)
         self.assertEqual(200, response.status_code)
@@ -128,7 +128,7 @@ class TestShoppingList(BaseTest):
         response = self.client.delete(
             "/v_1/shoppinglists",
             data=json.dumps({
-                "name": "Not existing"
+                "id": "900"
             }),
             content_type='application/json', headers=self.headers)
         self.assertEqual(404, response.status_code)
@@ -161,7 +161,7 @@ class TestShoppingList(BaseTest):
         response = self.client.post(
             "/v_1/shoppinglists/share",
             data=json.dumps({
-                "name": "Shares",
+                "id": "1",
                 "email": "esir@gmail.com"
             }),
             content_type='application/json', headers=self.headers)
@@ -185,7 +185,7 @@ class TestShoppingList(BaseTest):
         response = self.client.post(
             "/v_1/shoppinglists/share",
             data=json.dumps({
-                "name": "Shares",
+                "id": "1",
                 "email": "amnotthere@gmail.com"
             }),
             content_type='application/json', headers=self.headers)
@@ -195,7 +195,7 @@ class TestShoppingList(BaseTest):
         response = self.client.post(
             "/v_1/shoppinglists/share",
             data=json.dumps({
-                "name": "Shares",
+                "id": "1",
                 "email": "esir@gmail.com"
             }),
             content_type='application/json', headers=self.headers)

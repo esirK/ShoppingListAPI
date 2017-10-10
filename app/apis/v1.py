@@ -280,15 +280,15 @@ class ShareShoppingLists(Resource):
         Shares supplied shopping list with the email provided.
         """
         args = share_shoppinglist_parser.parse_args()
-        name = args['name']
-        email = args['email']
+        shopping_list_id = args.get('id')
+        email = args.get('email')
 
-        invalid_name = name_validalidatior(name, "Shopping List")
-        if invalid_name:
-            return invalid_name
+        invalid_id = numbers_validator(shopping_list_id)
+        if invalid_id:
+            return invalid_id
 
         # Find shopping list from db
-        shopping_list = ShoppingList.query.filter_by(name=name). \
+        shopping_list = ShoppingList.query.filter_by(id=shopping_list_id). \
             filter_by(owner_id=g.user.id).first()
         if shopping_list:
             # shopping list exists just share it now
@@ -297,17 +297,19 @@ class ShareShoppingLists(Resource):
                 # the person exists
                 if add_shared_shopping_list(shopping_list, share_with):
                     share(shopping_list, True, g.user.email)
-                    return make_json_response(200, "Shopping List " + name,
+                    return make_json_response(200, "Shopping List " +
+                                              shopping_list.name,
                                               " Shared Successfully")
                 else:
-                    return make_json_response(200, "Shopping List " + name,
+                    return make_json_response(200, "Shopping List With ID " +
+                                              shopping_list_id,
                                               " Not Shared")
             else:
                 # person don't exist or you are the person
                 return make_json_response(404, "Email: " + email,
                                           " Does not exists or its your email")
         else:
-            return make_json_response(404, "ShoppingList " + name, "Does Not Exist")
+            return make_json_response(404, "ShoppingList with ID " + shopping_list_id, "Does Not Exist")
 
 
 @ns.route("/shoppinglist_items")
