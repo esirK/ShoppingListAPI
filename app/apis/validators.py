@@ -26,6 +26,14 @@ def price_quantity_validator(value):
             return response, 400
 
 
+def numbers_validator(value):
+    if not str(value).isdigit():
+            response = {
+                "message": "An Invalid id type was provided. Expecting Integers only"
+            }
+            return response, 400
+
+
 def password_validator(password):
     reg_pass = r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$"
     if not re.search(reg_pass, password):

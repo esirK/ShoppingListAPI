@@ -8,7 +8,7 @@ from flask_httpauth import HTTPBasicAuth
 from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_parser, item_parser, \
     update_shoppinglist_parser, update_shoppinglist_item_parser, delete_shoppinglist_parser, \
     delete_shoppinglist_item_parser, paginate_query_parser, share_shoppinglist_parser
-from app.apis.validators import password_validator, name_validalidatior, price_quantity_validator
+from app.apis.validators import password_validator, name_validalidatior, price_quantity_validator, numbers_validator
 from app.exceptions import InvalidToken, TokenExpired
 from app.models import ShoppingList, ns, registration_model, login_model, update_model, user_model, \
     shopping_list_model, \
@@ -222,6 +222,10 @@ class ShoppingLists(Resource):
         new_name = args.get('new_name')
         description = args.get('description')
 
+        invalid_id = numbers_validator(soppinglist_id)
+        if invalid_id:
+            return invalid_id
+
         # Get shopping list
         shopping_list = ShoppingList.query.filter_by(id=soppinglist_id).first()
         if shopping_list is not None:
@@ -231,7 +235,7 @@ class ShoppingLists(Resource):
                 return make_json_response(200, "Shopping list " + shopping_list.name,
                                           " Updated Successfully")
             else:
-                return make_json_response(200, "Nothing was provided ", " to Updated")
+                return make_json_response(200, "Nothing was provided ", "to Updated")
 
         else:
             return make_json_response(404, "Shopping list " + soppinglist_id,
