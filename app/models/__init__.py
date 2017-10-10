@@ -38,7 +38,7 @@ shopping_list_model = ns.model('shopping_list_model', {
 })
 
 update_shopping_list_model = ns.model('update_shopping_list_model', {
-    'name': fields.String(default="Shopping List name"),
+    'id': fields.String(default="id"),
     'new_name': fields.String(default="New name"),
     'description': fields.String(default="None"),
 })
@@ -63,7 +63,9 @@ result_item_model = ns.model('result_item_model', {
 shopping_lists_with_items_model = shopping_list_model. \
     clone('shopping_lists_with_items_model',
           {
-              'items': fields.List(fields.Nested(result_item_model))
+              'items': fields.List(fields.Nested(result_item_model)),
+              'id': fields.String(default="id")
+
           })
 
 item_update_model = ns.model('item_update_model', {

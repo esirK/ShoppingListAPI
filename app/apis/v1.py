@@ -214,28 +214,27 @@ class ShoppingLists(Resource):
     def put(self):
         """
         Updates a shopping list 
-        Both the "new_name" and "description" fields can be left as 'None'
-        if the user does not intend to update either
+        Both the "new_name" and "description" fields can be added
+        according to which the user wants to update
         """
         args = update_shoppinglist_parser.parse_args()
-        name = args['name']
-        new_name = args['new_name']
-        description = args['description']
-
-        invalid_name = name_validalidatior(name, "Shopping List")
-        if invalid_name:
-            return invalid_name
+        soppinglist_id = args.get('id')
+        new_name = args.get('new_name')
+        description = args.get('description')
 
         # Get shopping list
-        shopping_list = ShoppingList.query.filter_by(name=name).first()
+        shopping_list = ShoppingList.query.filter_by(id=soppinglist_id).first()
         if shopping_list is not None:
             # We got the shopping list. Now Update it
-            update_shopping_list(shopping_list, new_name, description)
-            return make_json_response(200, "Shopping list " + name,
-                                      " Updated Successfully")
+            if new_name or description is not None:
+                update_shopping_list(shopping_list, new_name, description)
+                return make_json_response(200, "Shopping list " + shopping_list.name,
+                                          " Updated Successfully")
+            else:
+                return make_json_response(200, "Nothing was provided ", " to Updated")
 
         else:
-            return make_json_response(404, "Shopping list " + name,
+            return make_json_response(404, "Shopping list " + soppinglist_id,
                                       " Does not exist")
 
     @api.response(200, "ShoppingList Deleted Successfully")

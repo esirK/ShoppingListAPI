@@ -87,7 +87,7 @@ class TestShoppingList(BaseTest):
         response = self.client.put(
             "/v_1/shoppinglists",
             data=json.dumps({
-                "name": "Movies",
+                "id": "1",
                 "new_name": "Series",
                 "description": "None"
             }),
@@ -101,7 +101,7 @@ class TestShoppingList(BaseTest):
         response = self.client.put(
             "/v_1/shoppinglists",
             data=json.dumps({
-                "name": "I Do not Exist",
+                "id": "100",  # Id that does not exist
                 "new_name": "I Exist",
                 "description": "None"
             }),

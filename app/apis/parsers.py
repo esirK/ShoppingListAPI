@@ -23,13 +23,17 @@ shoppinglist_parser.add_argument('name', type=str, required=True,
 shoppinglist_parser.add_argument('description', type=str, required=True,
                                  help='Shoppinglist description')
 
-update_shoppinglist_parser = shoppinglist_parser.copy()
-update_shoppinglist_parser.add_argument('new_name', type=str, required=True,
+update_shoppinglist_parser = reqparse.RequestParser()
+update_shoppinglist_parser.add_argument('id', type=str, required=True,
+                                        help='Shoppinglist id required')
+update_shoppinglist_parser.add_argument('new_name', type=str,
                                         help='New Shoppinglist Name')
+shoppinglist_parser.add_argument('description', type=str,
+                                 help='Shoppinglist description')
 
 share_shoppinglist_parser = reqparse.RequestParser()
 share_shoppinglist_parser.add_argument('name', type=str, required=True,
-                                 help='Shoppinglist Name')
+                                       help='Shoppinglist Name')
 share_shoppinglist_parser.add_argument('email', type=inputs.email(), required=True,
                                        help='Email to share with')
 

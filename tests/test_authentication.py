@@ -85,7 +85,6 @@ class TestAuthentication(BaseTest):
         Test If A Registered User Can Login to the app using
         Invalid Credentials
          """
-        # email "tinyrick@gmail.com" was created on setup but with 'python8' as the pass
         response = self.client.post(
             "/v_1/user",
             data=json.dumps({
