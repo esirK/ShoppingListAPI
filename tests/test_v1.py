@@ -158,7 +158,6 @@ class TestMain(unittest.TestCase):
         self.assertEqual(2, len(json.loads(response.data)))
 
         x = json.loads(response.data)
-        print(x)
 
         self.assertEqual(1, len(x[0]['items']))
 

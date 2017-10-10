@@ -171,22 +171,16 @@ class ShoppingLists(Resource):
             shopping_list = ShoppingList.query. \
                 filter_by(owner_id=g.user.id).filter_by(name=search_query).first()
             if shopping_list:
-                response = {
-                    "shopping_list": marshal(shopping_list, shopping_lists_with_items_model),
-                    "message": "1 Shopping List Available"
-                }
-                return response
+
+                return marshal(shopping_list, shopping_lists_with_items_model)
             else:
                 return make_json_response(404, "Shopping List " + search_query,
                                           " Does Not Exist")
         else:
             shopping_lists = ShoppingList.query.filter_by(owner_id=g.user.id). \
                 paginate(page, limit, True).items
-            response = {
-                "shopping_lists": marshal(shopping_lists, shopping_lists_with_items_model),
-                "message": str(len(shopping_lists)) + "  Shopping List Available"
-            }
-            return response
+
+            return marshal(shopping_lists, shopping_lists_with_items_model)
 
     @api.response(201, "ShoppingList Added Successfully")
     @api.response(409, "ShoppingList Already Exist")
