@@ -91,12 +91,12 @@ def share(shoppinglist, shared, shared_by):
     db.session.commit()
 
 
-def add_item(shoppinglist, name, price, quantity, shoppinglist_id):
+def add_item(shoppinglist, name, price, quantity, owner_id):
     """
         Adds an item to the current shoppinglist
         """
     item = Item(name=name, price=price, quantity=quantity,
-                shoppinglist=shoppinglist_id)
+                shoppinglist=shoppinglist, owner_id=owner_id)
     check_item = Item.query.filter_by(name=name). \
         filter_by(shoppinglist_id=shoppinglist.id).first()
     if not check_item:

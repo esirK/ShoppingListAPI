@@ -58,12 +58,13 @@ item_model = ns.model('item_model', {
     'name': fields.String(default="Name"),
     'price': fields.String(default="Price"),
     'quantity': fields.String(default="Quantity"),
-    'shopping_list_name': fields.String(default="ShoppingList Name "),
+    'shopping_list_id': fields.String(default="id"),
 })
 result_item_model = ns.model('result_item_model', {
     'name': fields.String(default="Name"),
     'price': fields.String(default="Price"),
     'quantity': fields.String(default="Quantity"),
+    'id': fields.String(default="0")
 })
 shopping_lists_with_items_model = shopping_list_display_model. \
     clone('shopping_lists_with_items_model',
@@ -74,14 +75,12 @@ shopping_lists_with_items_model = shopping_list_display_model. \
           })
 
 item_update_model = ns.model('item_update_model', {
-    'name': fields.String(default="Item Name"),
+    'id': fields.String(default="Item id"),
     'new_name': fields.String(default="None"),
     'price': fields.String(default=0),
     'quantity': fields.String(default=0),
-    'shopping_list_name': fields.String(default="ShoppingList Name "),
-    'new_shopping_list_name': fields.String(default="None")
+    'new_shopping_list_id': fields.String(default="0")
 })
 delete_shopping_list_item_model = ns.model('delete_shopping_list_item_model', {
-    'name': fields.String(default="ShoppingList Item name"),
-    'shopping_list_name': fields.String(default="ShoppingList the Item belongs to.")
+    'id': fields.String(default="0")
 })

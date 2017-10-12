@@ -12,7 +12,8 @@ class TestMain(BaseTest):
         Test a Logged In User Can Add items to their shopping_lists
         """
         self.create_shopping_lists("School")
-        response = self.create_shopping_lists_item("Skuma", 10, 2, "School")
+        response = self.create_shopping_lists_item("Skuma", 10, 2, "1")
+        print(response.data)
         self.assertEqual(201, response.status_code)
 
     def test_existing_shopping_list_item_can_not_be_created(self):
@@ -21,8 +22,8 @@ class TestMain(BaseTest):
         their shopping_lists
         """
         self.create_shopping_lists("Holiday")
-        self.create_shopping_lists_item("Router", 2500, 24, "Holiday")
-        response = self.create_shopping_lists_item("Router", 2500, 24, "Holiday")
+        self.create_shopping_lists_item("Router", 2500, 24, "1")
+        response = self.create_shopping_lists_item("Router", 2500, 24, "1")
         self.assertEqual(409, response.status_code)
 
     def test_shopping_list_not_found_returned(self):
@@ -30,7 +31,7 @@ class TestMain(BaseTest):
         Test 404 is returned on attempt to add items on non existing shoppinglist 
         :return: 
         """
-        response = self.create_shopping_lists_item("Wounder Woman", 150, 2, "Movies")
+        response = self.create_shopping_lists_item("Wounder Woman", 150, 2, "5")
         self.assertEqual(404, response.status_code)
 
     def test_un_authenticated_users_cannot_add_items(self):
@@ -43,7 +44,7 @@ class TestMain(BaseTest):
                 "name": "Amazing Woman",
                 "price": "150",
                 "quantity": "2",
-                "shopping_list_name": "Movies"
+                "shopping_list_id": "99"
             }
             ),
             content_type='application/json')  # authentication headers not passed
@@ -54,16 +55,15 @@ class TestMain(BaseTest):
         Test a Logged in User can update their shopping list items successfully
         """
         self.create_shopping_lists("Party")
-        self.create_shopping_lists_item("Beer", 250, 24, "Party")
+        self.create_shopping_lists_item("Beer", 250, 24, "1")
 
         response = self.client.put(
             "/v_1/shoppinglist_items",
             data=json.dumps({
-                "name": "Beer",
+                "id": "1",
                 "new_name": "BeerX",
                 "price": 0,
                 "quantity": 0,
-                "shopping_list_name": "Party",
                 "new_shopping_list_name": "None"
             }
             ),
@@ -78,11 +78,10 @@ class TestMain(BaseTest):
         response = self.client.put(
             "/v_1/shoppinglist_items",
             data=json.dumps({
-                "name": "Flash",
+                "id": "10",
                 "new_name": "Flask",
                 "price": 0,
                 "quantity": 0,
-                "shopping_list_name": "Fiction",
                 "new_shopping_list_name": "None"
             }
             ),
@@ -95,20 +94,20 @@ class TestMain(BaseTest):
         that does not exist fails
         """
         self.create_shopping_lists("Back to school")
-        self.create_shopping_lists_item("Beer", 250, 24, "Back to school")
+        self.create_shopping_lists_item("Beer", 250, 24, "1")
 
         response = self.client.put(
             "/v_1/shoppinglist_items",
             data=json.dumps({
-                "name": "Beer",
+                "id": "1",
                 "new_name": "Alcohol",
                 "price": 0,
                 "quantity": 0,
-                "shopping_list_name": "Back to school",
-                "new_shopping_list_name": "Fiction"
+                "new_shopping_list_id": "51"
             }
             ),
             content_type='application/json', headers=self.headers)
+        print(response.data)
         self.assertEqual(404, response.status_code)
 
     def test_delete_shopping_list_item(self):
@@ -117,8 +116,8 @@ class TestMain(BaseTest):
         from his/her shopping lists
         """
         self.create_shopping_lists("BBQ")
-        self.create_shopping_lists_item("Meat", 4000, 20, "BBQ")
-        response = self.delete_shopping_list_item(name="Meat", shopping_list_name="BBQ")
+        self.create_shopping_lists_item("Meat", 4000, 20, "1")
+        response = self.delete_shopping_list_item(item_id="1")
         self.assertEqual(200, response.status_code)
 
     def test_delete_of_non_existing_shopping_list_item_fails(self):
@@ -126,7 +125,7 @@ class TestMain(BaseTest):
         tests response if a user tries to delete non-existing item
         """
         self.create_shopping_lists("Love")
-        response = self.delete_shopping_list_item(name="Meat", shopping_list_name="Love")
+        response = self.delete_shopping_list_item(item_id="10")
         self.assertEqual(404, response.status_code)
 
     def test_user_cannot_delete_an_item_from_non_existing_shopping_list(self):
@@ -135,20 +134,19 @@ class TestMain(BaseTest):
         that has not been created
         :return: 
         """
-        response = self.delete_shopping_list_item("Siko", "Pia Siko")
+        response = self.delete_shopping_list_item(item_id="9")
         self.assertEqual(404, response.status_code)
 
     def test_non_authenticated_user_cannot_delete_an_item(self):
         response = self.client.delete(
             "/v_1/shoppinglist_items",
             data=json.dumps({
-                "name": "any name",
-                "shopping_list_name": "Try me"
+                "id": "1"
             }),
             content_type='application/json')  # No Headers
         self.assertEqual(401, response.status_code)
 
-    def delete_shopping_list_item(self, name, shopping_list_name):
+    def delete_shopping_list_item(self, item_id):
         """
         Deletes a given shopping list item
         :return: 
@@ -156,8 +154,7 @@ class TestMain(BaseTest):
         return self.client.delete(
             "/v_1/shoppinglist_items",
             data=json.dumps({
-                "name": name,
-                "shopping_list_name": shopping_list_name
+                "id": item_id
             }),
             content_type='application/json', headers=self.headers)
 

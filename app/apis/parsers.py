@@ -49,23 +49,26 @@ item_parser.add_argument('price', type=int, required=True,
                          help='Item Price has to be an Number')
 item_parser.add_argument('quantity', type=int, required=True,
                          help='Item Quantity has to be an Number')
-item_parser.add_argument('shopping_list_name', type=str, required=True,
-                         help='Shoppinglist(Name) to add item to')
+item_parser.add_argument('shopping_list_id', type=int, required=True,
+                         help='Shoppinglist(id) to add item to Required')
 
 delete_shoppinglist_item_parser = reqparse.RequestParser()
-delete_shoppinglist_item_parser.add_argument('name', type=str, required=True,
-                                             help='Shoppinglist Item to delete')
+delete_shoppinglist_item_parser.add_argument('id', type=int, required=True,
+                                             help='ID of Shoppinglist Item to delete Required')
 
-delete_shoppinglist_item_parser.add_argument('shopping_list_name', type=str,
-                                             required=True,
-                                             help='Name of Shopping list '
-                                                  'the Item belongs to')
 
-update_shoppinglist_item_parser = item_parser.copy()
-update_shoppinglist_item_parser.add_argument('new_name', type=str, required=True,
+update_shoppinglist_item_parser = reqparse.RequestParser()
+update_shoppinglist_item_parser.add_argument('price', type=int, required=True,
+                                             help='Item Price has to be an Number')
+update_shoppinglist_item_parser.add_argument('quantity', type=int, required=True,
+                                             help='Item Quantity has to be an Number')
+
+update_shoppinglist_item_parser.add_argument('id', type=str, required=True,
+                                             help='Item Id required')
+update_shoppinglist_item_parser.add_argument('new_name', type=str,
                                              help='New Item Name')
-update_shoppinglist_item_parser.add_argument('new_shopping_list_name', type=str, required=True,
-                                             help='New shopping list Name')
+update_shoppinglist_item_parser.add_argument('new_shopping_list_id', type=int,
+                                             help='New shopping list ID required')
 
 paginate_query_parser = reqparse.RequestParser()
 paginate_query_parser.add_argument(

@@ -27,8 +27,8 @@ class TestShoppingList(BaseTest):
         self.create_shopping_lists("Family")
         self.create_shopping_lists("Games")
 
-        self.create_shopping_lists_item("Wine", 2500, 3, "Family")
-        self.create_shopping_lists_item("Ball", 2500, 3, "Games")
+        self.create_shopping_lists_item("Wine", 2500, 3, "1")
+        self.create_shopping_lists_item("Ball", 2500, 3, "2")
 
         response = self.client.get(
             "/v_1/shoppinglists",

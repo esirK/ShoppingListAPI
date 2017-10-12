@@ -15,6 +15,7 @@ class User(db.Model):
     email = db.Column(db.String(64), unique=True, index=True)
     password = db.Column(db.String(104))
     shopping_lists = db.relationship(ShoppingList, backref='owner', lazy='dynamic')
+    items = db.relationship(ShoppingList, backref='items_owner', lazy='dynamic')
     joined_on = db.Column(db.DateTime, default=datetime.utcnow)
     date_modified = db.Column(db.DateTime, default=datetime.utcnow,
                               onupdate=datetime.utcnow)

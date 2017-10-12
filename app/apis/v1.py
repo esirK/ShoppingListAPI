@@ -322,37 +322,40 @@ class Items(Resource):
     def post(self):
         """
         Add's a ShoppingList item
-        "shopping_list_name" Is the name of the shopping_list to which the 
+        "shopping_list_id" Is the id of the shopping_list to which the
         item will be added to.
         """
         args = item_parser.parse_args()
-        name = args['name']
-        price = args['price']
-        quantity = args['quantity']
-        shopping_list_name = args['shopping_list_name']
+        name = args.get('name')
+        price = args.get('price')
+        quantity = args.get('quantity')
+        shopping_list_id = args.get('shopping_list_id')
         # get shoppinglist from db
 
         invalid_name = name_validalidatior(name, "Shopping List Item")
-        if invalid_name or name_validalidatior(shopping_list_name, "Shopping List"):
+        if invalid_name:
             return invalid_name
 
         invalid_price = price_quantity_validator(price)
         if invalid_price or price_quantity_validator(quantity):
             return invalid_price
 
-        shopping_list = ShoppingList.query.filter_by(name=shopping_list_name) \
+        invalid_id = numbers_validator(shopping_list_id)
+        if invalid_id:
+            return invalid_id
+
+        shopping_list = ShoppingList.query.filter_by(id=shopping_list_id) \
             .filter_by(owner_id=g.user.id).first()
         if shopping_list:
             # Eureka!!! we found the shopping list add the item now
             if add_item(shopping_list, name=name, price=price,
-                        quantity=quantity,
-                        shoppinglist_id=shopping_list):
+                        quantity=quantity, owner_id=g.user.id):
                 return make_json_response(201, "Item " + name, " Added Successfully")
 
             else:
                 return make_json_response(409, "Item " + name, " Already exist")
 
-        return make_json_response(404, "Shoppinglist " + shopping_list_name,
+        return make_json_response(404, "Shoppinglist with ID " + str(shopping_list_id),
                                   " Not Found")
 
     @api.response(200, "ShoppingList Item Updated Successfully")
@@ -364,64 +367,47 @@ class Items(Resource):
         Updates a shopping list Item
         For Fields that the user does not want to update leave
         them as they are on the model
-        i.e "None' for "new_name" and "new_shopping_list_name" and '0'
+        i.e "None' for "new_name" and '0' "new_shopping_list_id"
          for "price" and "quantity"
         """
         args = update_shoppinglist_item_parser.parse_args()
-        name = args['name']
-        new_name = args['new_name']
-        price = args['price']
-        quantity = args['quantity']
-        shopping_list_name = args['shopping_list_name']
-        new_shopping_list_name = args['new_shopping_list_name']
+        item_id = args.get('id')
+        new_name = args.get('new_name')
+        price = args.get('price')
+        quantity = args.get('quantity')
+        new_shopping_list_id = args.get('new_shopping_list_id')
 
-        # Get Shopping to which this item belongs to
-        shopping_list = ShoppingList.query.filter_by(name=shopping_list_name) \
-            .filter_by(owner_id=g.user.id).first()
-        if shopping_list is not None:
-            # get matching items from the shopping list
+        item = Item.query.filter_by(id=item_id).first()
 
-            item = Item.query.filter_by(name=name). \
-                filter_by(shoppinglist_id=shopping_list.id).first()
+        if item is not None and new_shopping_list_id is None:
+            # Got The Item We supposed to Update
+            item.update_item(name=new_name, price=price,
+                             quantity=quantity)
+            return make_json_response(200, "Item " + "'" + item.name + "'",
+                                      " Successfully Updated")
 
-            if item is not None:
-                # Got The Item We supposed to Update
-                # Check if user wants to update the items shopping list
+        if item is None:
+            return make_json_response(404, "Item with id " + str(item_id),
+                                      "Does not Exist '" +
+                                      "'")
 
-                if new_shopping_list_name != "None":
-                    # Look for the Shopping list to update to
-                    new_shopping_list = ShoppingList.query. \
-                        filter_by(name=new_shopping_list_name). \
-                        filter_by(owner_id=g.user.id).first()
+        # Check if user wants to update the items shopping list
+        if new_shopping_list_id is not None:
+            # Look for the Shopping list to update to
+            new_shopping_list = ShoppingList.query. \
+                filter_by(id=new_shopping_list_id).first()
 
-                    if new_shopping_list is not None:
-                        # User has that Shopping List Now update the item
-                        item.update_item(name=new_name, price=price,
-                                         quantity=quantity,
-                                         shoppinglist=new_shopping_list)
-
-                    else:
-                        return make_json_response(404, "The new Shopping List " +
-                                                  "'" +
-                                                  new_shopping_list_name +
-                                                  "'",
-                                                  " Does not Exist")
-
-                else:
-                    item.update_item(name=new_name, price=price,
-                                     quantity=quantity,
-                                     shoppinglist=shopping_list)
-
-                return make_json_response(200, "Item " + "'" + name + "'",
-                                          " Successfully Updated")
-
+            if new_shopping_list is not None:
+                # User has that Shopping List Now update the item
+                item.update_item(name=new_name, price=price,
+                                 quantity=quantity,
+                                 shoppinglist=new_shopping_list)
             else:
-                return make_json_response(404, "Item " + name,
-                                          "Does not Exist In shopping list '" +
-                                          shopping_list.name + "'")
-        else:
-            return make_json_response(404, "Shopping List " + shopping_list_name,
-                                      "Does Not Exist")
+                return make_json_response(404, "The new Shopping List with ID " +
+                                          "'" +
+                                          str(new_shopping_list_id) +
+                                          "'",
+                                          " Does not Exist")
 
     @api.response(200, "ShoppingList Item Deleted Successfully")
     @api.response(404, "ShoppingList or ShoppingList Item Does not Exist")
@@ -432,27 +418,17 @@ class Items(Resource):
         Deletes a shopping list Item
         """
         args = delete_shoppinglist_item_parser.parse_args()
-        name = args['name']
-        shopping_list_name = args['shopping_list_name']
+        item_id = args.get('id')
 
-        # Check if That shopping list exist
-        shopping_list = ShoppingList.query. \
-            filter_by(name=shopping_list_name). \
-            filter_by(owner_id=g.user.id).first()
-        if shopping_list:
-            # Check if That Item Now Exists
-            item = Item.query.filter_by(name=name). \
-                filter_by(shoppinglist_id=shopping_list.id).first()
-            if item:
-                delete_item(item)
-                return make_json_response(200, "Item " + name,
-                                          " Deleted Successfully")
-            else:
-                return make_json_response(404, "Item " + name,
-                                          " Does Not Exist.")
+        # Check if That Item exist
+        item = Item.query.filter_by(id=item_id).filter_by(owner_id=g.user.id).first()
+        if item:
+            delete_item(item)
+            return make_json_response(200, "Item " + item.name,
+                                      " Deleted Successfully")
         else:
-            return make_json_response(404, "ShoppingList " + shopping_list_name,
-                                      "Does not Exist.")
+            return make_json_response(404, "Item With id " + str(item_id),
+                                      " Does Not Exist.")
 
 
 def make_json_response(status_code, name_obj, message):

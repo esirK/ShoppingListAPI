@@ -49,13 +49,13 @@ class BaseTest(unittest.TestCase):
             }),
             content_type='application/json', headers=self.headers)
 
-    def create_shopping_lists_item(self, name, price, quantity, shopping_list_name):
+    def create_shopping_lists_item(self, name, price, quantity, shopping_list_id):
         """
         Creates a shopping list item with provided details
         :param name: Of the item
         :param price: of the item
         :param quantity: of the item
-        :param shopping_list_name: to which the item belongs to
+        :param shopping_list_id: to which the item belongs to
         :return: a response
         """
         return self.client.post(
@@ -64,7 +64,7 @@ class BaseTest(unittest.TestCase):
                 "name": name,
                 "price": price,
                 "quantity": quantity,
-                "shopping_list_name": shopping_list_name,
+                "shopping_list_id": shopping_list_id,
             }
             ),
             content_type='application/json', headers=self.headers)
