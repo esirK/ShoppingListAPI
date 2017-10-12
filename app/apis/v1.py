@@ -168,21 +168,24 @@ class ShoppingLists(Resource):
         limit = args.get("limit", 10)
         if search_query:
             """
-            gets shopping_list of current user specified by search_query
+            gets shopping_list(s) of current user specified by search_query
             """
-            shopping_list = ShoppingList.query. \
-                filter_by(owner_id=g.user.id).filter_by(name=search_query).first()
-            if shopping_list:
+            shopping_lists = ShoppingList.query.\
+                filter(ShoppingList.name.like(search_query+"%")).\
+                filter_by(owner_id=g.user.id).all()
+            if len(shopping_lists) > 0:
 
-                return marshal(shopping_list, shopping_lists_with_items_model)
+                return marshal(shopping_lists, shopping_lists_with_items_model)
             else:
                 return make_json_response(404, "Shopping List " + search_query,
                                           " Does Not Exist")
-        else:
-            shopping_lists = ShoppingList.query.filter_by(owner_id=g.user.id). \
-                paginate(page, limit, True).items
+        shopping_lists = ShoppingList.query.filter_by(owner_id=g.user.id). \
+            paginate(page, limit, True).items
+        if len(shopping_lists) == 0:
+            return make_json_response(200, "You Currently",
+                                      "Do Not Have Any Shopping List")
 
-            return marshal(shopping_lists, shopping_lists_with_items_model)
+        return marshal(shopping_lists, shopping_lists_with_items_model)
 
     @api.response(201, "ShoppingList Added Successfully")
     @api.response(409, "ShoppingList Already Exist")
@@ -365,10 +368,7 @@ class Items(Resource):
     def put(self):
         """
         Updates a shopping list Item
-        For Fields that the user does not want to update leave
-        them as they are on the model
-        i.e "None' for "new_name" and '0' "new_shopping_list_id"
-         for "price" and "quantity"
+        For Fields that the user does not want to update they can be omitted
         """
         args = update_shoppinglist_item_parser.parse_args()
         item_id = args.get('id')
