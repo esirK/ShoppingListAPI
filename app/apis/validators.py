@@ -1,3 +1,5 @@
+import ast
+import numbers
 import re
 
 from flask import jsonify
@@ -18,10 +20,14 @@ def name_validalidatior(name, context):
             return response, 400
 
 
-def price_quantity_validator(value):
-    if not str(value).isdigit():
+def price_quantity_validator(value, name):
+    value = ast.literal_eval(value)
+    if not isinstance(value, numbers.Number):
             response = {
-                "message": "Expecting Numbers Alone."
+                "errors": {
+                    name: "Item "+name+" has to be an Number"
+                },
+                "message": "Input payload validation failed"
             }
             return response, 400
 

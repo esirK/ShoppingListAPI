@@ -45,9 +45,9 @@ item_parser = reqparse.RequestParser()
 item_parser.add_argument('name', type=str, required=True,
                          help='Item Name')
 
-item_parser.add_argument('price', type=int, required=True,
+item_parser.add_argument('price', required=True,
                          help='Item Price has to be an Number')
-item_parser.add_argument('quantity', type=int, required=True,
+item_parser.add_argument('quantity', required=True,
                          help='Item Quantity has to be an Number')
 item_parser.add_argument('shopping_list_id', type=int, required=True,
                          help='Shoppinglist(id) to add item to Required')

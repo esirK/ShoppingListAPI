@@ -339,8 +339,8 @@ class Items(Resource):
         if invalid_name:
             return invalid_name
 
-        invalid_price = price_quantity_validator(price)
-        if invalid_price or price_quantity_validator(quantity):
+        invalid_price = price_quantity_validator(price, "Price")
+        if invalid_price or price_quantity_validator(quantity, "Quantity"):
             return invalid_price
 
         invalid_id = numbers_validator(shopping_list_id)
