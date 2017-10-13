@@ -17,7 +17,7 @@ class BaseTest(unittest.TestCase):
             db.drop_all()
             db.create_all()
             self.client = self.app.test_client()
-            self.client.post("/v_1/register",
+            self.client.post("/v1/register",
                              data=json.dumps({"name": "tinyrick",
                                               "password": "python8",
                                               "email": "tinyrick@gmail.com"
@@ -28,7 +28,7 @@ class BaseTest(unittest.TestCase):
                                  b64encode(b"tinyrick@gmail.com:python8")
                                      .decode("ascii")
             }
-            res = self.client.get("/v_1/token", headers=self.headers)
+            res = self.client.get("/v1/token", headers=self.headers)
             token = json.loads(res.data)['token']
             self.token_headers = {
                 'Authorization': 'Basic %s'
@@ -42,7 +42,7 @@ class BaseTest(unittest.TestCase):
         :param name:
         """
         self.client.post(
-            "/v_1/shoppinglists",
+            "/v1/shoppinglists",
             data=json.dumps({
                 "name": "" + name,
                 "description": "Short Description About " + name + "Shopping List"
@@ -59,7 +59,7 @@ class BaseTest(unittest.TestCase):
         :return: a response
         """
         return self.client.post(
-            "/v_1/shoppinglist_items",
+            "/v1/shoppinglist_items",
             data=json.dumps({
                 "name": name,
                 "price": price,

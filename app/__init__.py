@@ -6,7 +6,7 @@ from app.configurations import config
 from app.apis.v1 import api, bp, ns
 from app.init_db import db
 
-api.add_namespace(ns, path="/v_1")
+api.add_namespace(ns, path="/v1")
 
 
 def create_app(config_name):

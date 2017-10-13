@@ -265,7 +265,7 @@ class ShoppingLists(Resource):
         if shopping_list is not None:
             items = Item.query.filter_by(shoppinglist_id=shopping_list.id).all()
             delete_shoppinglist(shopping_list, items)
-            return make_json_response(200, "Shopping list " + shopping_list.name,
+            return make_json_response(204, "Shopping list " + shopping_list.name,
                                       " Deleted Successfully")
         else:
             return make_json_response(404, "Shopping list with ID " + shoppinglist_id,
@@ -424,7 +424,7 @@ class Items(Resource):
         item = Item.query.filter_by(id=item_id).filter_by(owner_id=g.user.id).first()
         if item:
             delete_item(item)
-            return make_json_response(200, "Item " + item.name,
+            return make_json_response(204, "Item " + item.name,
                                       " Deleted Successfully")
         else:
             return make_json_response(404, "Item With id " + str(item_id),

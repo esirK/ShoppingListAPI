@@ -11,7 +11,7 @@ class TestShoppingList(BaseTest):
         Test a Logged in User can add a shopping list into his/her account
         """
         response = self.client.post(
-            "/v_1/shoppinglists",
+            "/v1/shoppinglists",
             data=json.dumps({
                 "name": "Soko",
                 "description": "Short Description About Soko"
@@ -31,7 +31,7 @@ class TestShoppingList(BaseTest):
         self.create_shopping_lists_item("Ball", 2500, 3, "2")
 
         response = self.client.get(
-            "/v_1/shoppinglists",
+            "/v1/shoppinglists",
             headers=self.headers)
         self.assertEqual(2, len(json.loads(response.data)))
 
@@ -46,7 +46,7 @@ class TestShoppingList(BaseTest):
         self.create_shopping_lists("Family")
         self.create_shopping_lists_item("Wine", 2500, 3, "Family")
         response = self.client.get(
-            "/v_1/shoppinglists?q=Family",
+            "/v1/shoppinglists?q=Family",
             headers=self.headers)
         self.assertEqual(200, response.status_code)
 
@@ -57,7 +57,7 @@ class TestShoppingList(BaseTest):
         self.create_shopping_lists("Sons Birthday")
 
         response = self.client.post(
-            "/v_1/shoppinglists",
+            "/v1/shoppinglists",
             data=json.dumps({
                 "name": "Sons Birthday",
                 "description": "Short Description About Sons Birthday"
@@ -70,7 +70,7 @@ class TestShoppingList(BaseTest):
         Test a non Logged in User can not add a shopping list
         """
         response = self.client.post(
-            "/v_1/shoppinglists",
+            "/v1/shoppinglists",
             data=json.dumps({
                 "name": "Soko",
                 "description": "Short Description About Soko"
@@ -85,7 +85,7 @@ class TestShoppingList(BaseTest):
         """
         self.create_shopping_lists("Movies")
         response = self.client.put(
-            "/v_1/shoppinglists",
+            "/v1/shoppinglists",
             data=json.dumps({
                 "id": "1",
                 "new_name": "Series",
@@ -99,7 +99,7 @@ class TestShoppingList(BaseTest):
         Test a Logged in User can not Update a non existing shopping lists
         """
         response = self.client.put(
-            "/v_1/shoppinglists",
+            "/v1/shoppinglists",
             data=json.dumps({
                 "id": "100",  # Id that does not exist
                 "new_name": "I Exist",
@@ -114,19 +114,19 @@ class TestShoppingList(BaseTest):
         """
         self.create_shopping_lists("Gaming")
         response = self.client.delete(
-            "/v_1/shoppinglists",
+            "/v1/shoppinglists",
             data=json.dumps({
                 "id": "1"
             }),
             content_type='application/json', headers=self.headers)
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(204, response.status_code)
 
     def test_delete_of_non_existing_shopping_list_fails(self):
         """
         Test a Logged in User Can not Delete a non existing shopping lists
         """
         response = self.client.delete(
-            "/v_1/shoppinglists",
+            "/v1/shoppinglists",
             data=json.dumps({
                 "id": "900"
             }),
@@ -139,7 +139,7 @@ class TestShoppingList(BaseTest):
         """
         self.create_shopping_lists("Morties")
         response = self.client.delete(
-            "/v_1/shoppinglists",
+            "/v1/shoppinglists",
             data=json.dumps({
                 "name": "Morties"
             }),
@@ -151,7 +151,7 @@ class TestShoppingList(BaseTest):
         Test a Logged in User Can Share a shopping list with other users
         """
         self.create_shopping_lists("Shares")
-        self.client.post("/v_1/register",
+        self.client.post("/v1/register",
                          data=json.dumps({"name": "tinyrick",
                                           "password": "python8",
                                           "email": "esir@gmail.com"
@@ -159,7 +159,7 @@ class TestShoppingList(BaseTest):
                          content_type='application/json')
 
         response = self.client.post(
-            "/v_1/shoppinglists/share",
+            "/v1/shoppinglists/share",
             data=json.dumps({
                 "id": "1",
                 "email": "esir@gmail.com"
@@ -172,7 +172,7 @@ class TestShoppingList(BaseTest):
                                  .decode("ascii")
         }
         res = self.client.get(
-            "/v_1/shoppinglists",
+            "/v1/shoppinglists",
             data=json.dumps({
                 "name": "Shares",
                 "email": "esir@gmail.com"
@@ -183,7 +183,7 @@ class TestShoppingList(BaseTest):
     def test_shopping_list_cannot_be_shared_with_non_app_users(self):
         self.create_shopping_lists("Shares")
         response = self.client.post(
-            "/v_1/shoppinglists/share",
+            "/v1/shoppinglists/share",
             data=json.dumps({
                 "id": "1",
                 "email": "amnotthere@gmail.com"
@@ -193,7 +193,7 @@ class TestShoppingList(BaseTest):
 
     def test_non_existing_shopping_list_cannot_be_shared(self):
         response = self.client.post(
-            "/v_1/shoppinglists/share",
+            "/v1/shoppinglists/share",
             data=json.dumps({
                 "id": "1",
                 "email": "esir@gmail.com"

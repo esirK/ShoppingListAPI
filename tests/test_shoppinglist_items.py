@@ -39,7 +39,7 @@ class TestMain(BaseTest):
         Test non registered users not allowed to add shoppinglist items 
         """
         response = self.client.post(
-            "/v_1/shoppinglist_items",
+            "/v1/shoppinglist_items",
             data=json.dumps({
                 "name": "Amazing Woman",
                 "price": "150",
@@ -58,7 +58,7 @@ class TestMain(BaseTest):
         self.create_shopping_lists_item("Beer", 250, 24, "1")
 
         response = self.client.put(
-            "/v_1/shoppinglist_items",
+            "/v1/shoppinglist_items",
             data=json.dumps({
                 "id": "1",
                 "new_name": "BeerX",
@@ -76,7 +76,7 @@ class TestMain(BaseTest):
         """
         self.create_shopping_lists("Fictions")
         response = self.client.put(
-            "/v_1/shoppinglist_items",
+            "/v1/shoppinglist_items",
             data=json.dumps({
                 "id": "10",
                 "new_name": "Flask",
@@ -97,7 +97,7 @@ class TestMain(BaseTest):
         self.create_shopping_lists_item("Beer", 250, 24, "1")
 
         response = self.client.put(
-            "/v_1/shoppinglist_items",
+            "/v1/shoppinglist_items",
             data=json.dumps({
                 "id": "1",
                 "new_name": "Alcohol",
@@ -118,7 +118,7 @@ class TestMain(BaseTest):
         self.create_shopping_lists("BBQ")
         self.create_shopping_lists_item("Meat", 4000, 20, "1")
         response = self.delete_shopping_list_item(item_id="1")
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(204, response.status_code)
 
     def test_delete_of_non_existing_shopping_list_item_fails(self):
         """
@@ -139,7 +139,7 @@ class TestMain(BaseTest):
 
     def test_non_authenticated_user_cannot_delete_an_item(self):
         response = self.client.delete(
-            "/v_1/shoppinglist_items",
+            "/v1/shoppinglist_items",
             data=json.dumps({
                 "id": "1"
             }),
@@ -152,7 +152,7 @@ class TestMain(BaseTest):
         :return: 
         """
         return self.client.delete(
-            "/v_1/shoppinglist_items",
+            "/v1/shoppinglist_items",
             data=json.dumps({
                 "id": item_id
             }),
