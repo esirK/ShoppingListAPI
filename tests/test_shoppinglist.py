@@ -119,7 +119,7 @@ class TestShoppingList(BaseTest):
                 "id": "1"
             }),
             content_type='application/json', headers=self.headers)
-        self.assertEqual(204, response.status_code)
+        self.assertEqual(200, response.status_code)
 
     def test_delete_of_non_existing_shopping_list_fails(self):
         """
