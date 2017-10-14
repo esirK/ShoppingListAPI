@@ -336,28 +336,6 @@ class ShareShoppingLists(Resource):
             return make_json_response(404, "ShoppingList with ID " + shopping_list_id, "Does Not Exist")
 
 
-@ns.route("/shoppinglist_items/<id>")
-class SingleItem(Resource):
-    @api.response(200, "Item Found")
-    @api.response(404, "Item Does Not Exist")
-    @auth.login_required
-    def get(self, id=None):
-        """
-        Returns a single Item with the supplied id
-        """
-        if validate_ints(id):
-            item = Item.query.filter_by(id=id) \
-                .filter_by(owner_id=g.user.id).first()
-            if item is not None:
-                return marshal(item, item_model)
-            else:
-                return make_json_response(404, "Item with ID " + id,
-                                          " Does not exist")
-        else:
-            return make_json_response(404, "Item with ID " + id,
-                                      " Does not exist. Expecting a digit id")
-
-
 @ns.route("/shoppinglist_items")
 class Items(Resource):
     @api.response(201, "Item Added Successfully")
@@ -452,25 +430,46 @@ class Items(Resource):
                                           "'",
                                           " Does not Exist")
 
-    @api.response(200, "ShoppingList Item Deleted Successfully")
-    @api.response(404, "ShoppingList or ShoppingList Item Does not Exist")
-    @ns.expect(delete_shopping_list_item_model, validate=True)
+
+@ns.route("/shoppinglist_items/<id>")
+class SingleItem(Resource):
+    @api.response(200, "Item Found")
+    @api.response(404, "Item Does Not Exist")
     @auth.login_required
-    def delete(self):
+    def get(self, id=None):
+        """
+        Returns a single Item with the supplied id
+        """
+        if validate_ints(id):
+            item = Item.query.filter_by(id=id) \
+                .filter_by(owner_id=g.user.id).first()
+            if item is not None:
+                return marshal(item, item_model)
+            else:
+                return make_json_response(404, "Item with ID " + id,
+                                          " Does not exist")
+        else:
+            return make_json_response(404, "Item with ID " + id,
+                                      " Does not exist. Expecting a digit id")
+
+    @api.response(200, "ShoppingList Item Deleted Successfully")
+    @api.response(404, "ShoppingList Item Does not Exist")
+    @auth.login_required
+    def delete(self, id=None):
         """
         Deletes a shopping list Item
         """
-        args = delete_shoppinglist_item_parser.parse_args()
-        item_id = args.get('id')
-
+        if not validate_ints(id):
+            return make_json_response(404, "Shopping list with ID " + id,
+                                      " Does not exist. Expecting a digit id")
         # Check if That Item exist
-        item = Item.query.filter_by(id=item_id).filter_by(owner_id=g.user.id).first()
+        item = Item.query.filter_by(id=id).filter_by(owner_id=g.user.id).first()
         if item:
             delete_item(item)
             return make_json_response(200, "Item " + item.name,
                                       " Deleted Successfully")
         else:
-            return make_json_response(404, "Item With id " + str(item_id),
+            return make_json_response(404, "Item With id " + str(id),
                                       " Does Not Exist.")
 
 

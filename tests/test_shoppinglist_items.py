@@ -139,10 +139,7 @@ class TestMain(BaseTest):
 
     def test_non_authenticated_user_cannot_delete_an_item(self):
         response = self.client.delete(
-            "/v1/shoppinglist_items",
-            data=json.dumps({
-                "id": "1"
-            }),
+            "/v1/shoppinglist_items/1",
             content_type='application/json')  # No Headers
         self.assertEqual(401, response.status_code)
 
@@ -152,10 +149,7 @@ class TestMain(BaseTest):
         :return: 
         """
         return self.client.delete(
-            "/v1/shoppinglist_items",
-            data=json.dumps({
-                "id": item_id
-            }),
+            "/v1/shoppinglist_items/"+item_id,
             content_type='application/json', headers=self.headers)
 
 
