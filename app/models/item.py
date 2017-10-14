@@ -7,8 +7,8 @@ class Item(db.Model):
     __tablename__ = "items"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64))
-    price = db.Column(db.Integer())
-    quantity = db.Column(db.Integer())
+    price = db.Column(db.Float())
+    quantity = db.Column(db.Float())
     shoppinglist_id = db.Column(db.Integer, db.ForeignKey('shoppinglists.id'))
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     created_on = db.Column(db.DateTime(), default=datetime.utcnow)
@@ -30,11 +30,11 @@ class Item(db.Model):
 
     def update_item(self, name, price, quantity, shoppinglist=None):
         # updates self
-        if name != "None":
+        if name is not None:
             self.name = name
-        if price != 0:
+        if price is not None:
             self.price = price
-        if quantity != 0:
+        if quantity is not None:
             self.quantity = quantity
         if shoppinglist is not None:
             self.shoppinglist_id = shoppinglist.id

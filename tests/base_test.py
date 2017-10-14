@@ -64,7 +64,7 @@ class BaseTest(unittest.TestCase):
                 "name": name,
                 "price": price,
                 "quantity": quantity,
-                "shopping_list_id": shopping_list_id,
+                "shoppinglist_id": shopping_list_id,
             }
             ),
             content_type='application/json', headers=self.headers)

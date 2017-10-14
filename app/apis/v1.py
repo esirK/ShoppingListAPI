@@ -6,15 +6,15 @@ from flask_restplus import Resource, Api, marshal
 from flask_httpauth import HTTPBasicAuth
 
 from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_parser, item_parser, \
-    update_shoppinglist_parser, update_shoppinglist_item_parser, delete_shoppinglist_parser, \
-    delete_shoppinglist_item_parser, paginate_query_parser, share_shoppinglist_parser
-from app.apis.validators import password_validator, name_validalidatior, price_quantity_validator, numbers_validator, \
-    validate_ints
+    update_shoppinglist_parser, update_shoppinglist_item_parser, \
+    paginate_query_parser, share_shoppinglist_parser
+from app.apis.validators import password_validator, name_validalidatior, numbers_validator, \
+    validate_ints, validate_values
 from app.exceptions import InvalidToken, TokenExpired
 from app.models import ShoppingList, ns, registration_model, login_model, update_model, user_model, \
     shopping_list_model, \
-    update_shopping_list_model, delete_shopping_list_model, item_model, item_update_model, \
-    delete_shopping_list_item_model, shopping_lists_with_items_model, share_shoppinglist_model
+    update_shopping_list_model, item_model, item_update_model, \
+    shopping_lists_with_items_model, share_shoppinglist_model
 from app.models.item import Item
 from app.models.user import User
 from app.controller import save_user, add_shopping_list, add_shared_shopping_list, delete_shoppinglist, update_user, \
@@ -235,7 +235,7 @@ class ShoppingLists(Resource):
         shopping_list = ShoppingList.query.filter_by(id=soppinglist_id).first()
         if shopping_list is not None:
             # We got the shopping list. Now Update it
-            if new_name or description is not None:
+            if new_name is not None or description is not None:
                 update_shopping_list(shopping_list, new_name, description)
                 return make_json_response(200, "Shopping list " + shopping_list.name,
                                           " Updated Successfully")
@@ -286,7 +286,7 @@ class SingleShoppingList(Resource):
         if shopping_list is not None:
             items = Item.query.filter_by(shoppinglist_id=shopping_list.id).all()
             delete_shoppinglist(shopping_list, items)
-            return make_json_response(200, "Shopping list" + shopping_list.name,
+            return make_json_response(200, "Shopping list " + shopping_list.name,
                                       " Deleted Successfully")
         else:
             return make_json_response(404, "Shopping list with ID " + id,
@@ -353,20 +353,10 @@ class Items(Resource):
         name = args.get('name')
         price = args.get('price')
         quantity = args.get('quantity')
-        shopping_list_id = args.get('shopping_list_id')
+        shopping_list_id = args.get('shoppinglist_id')
         # get shoppinglist from db
 
-        invalid_name = name_validalidatior(name, "Shopping List Item")
-        if invalid_name:
-            return invalid_name
-
-        invalid_price = price_quantity_validator(price, "Price")
-        if invalid_price or price_quantity_validator(quantity, "Quantity"):
-            return invalid_price
-
-        invalid_id = numbers_validator(shopping_list_id)
-        if invalid_id:
-            return invalid_id
+        validate_values(name, price, quantity, shopping_list_id)
 
         shopping_list = ShoppingList.query.filter_by(id=shopping_list_id) \
             .filter_by(owner_id=g.user.id).first()
@@ -393,10 +383,22 @@ class Items(Resource):
         """
         args = update_shoppinglist_item_parser.parse_args()
         item_id = args.get('id')
-        new_name = args.get('new_name')
+        new_name = args.get('new_name', "None")
         price = args.get('price')
         quantity = args.get('quantity')
         new_shopping_list_id = args.get('new_shopping_list_id')
+
+        if new_name is None and price is None and quantity is None \
+                and new_shopping_list_id is None:
+            return make_json_response(404, "Nothing Provided ",
+                                      " For Updating")
+        if not validate_ints(item_id):
+            return make_json_response(404, "Shoppinglist Item ID " +
+                                      "'" + str(item_id) + "'",
+                                      " Is an Invalid Id")
+        invalid_values = validate_values(new_name, price, quantity, new_shopping_list_id)
+        if invalid_values:
+            return invalid_values
 
         item = Item.query.filter_by(id=item_id).first()
 
@@ -406,29 +408,33 @@ class Items(Resource):
                              quantity=quantity)
             return make_json_response(200, "Item " + "'" + item.name + "'",
                                       " Successfully Updated")
-
         if item is None:
-            return make_json_response(404, "Item with id " + str(item_id),
-                                      "Does not Exist '" +
-                                      "'")
+            return make_json_response(404, "Item with id " + "'"+str(item_id)+"'",
+                                      "Does not Exist")
 
         # Check if user wants to update the items shopping list
-        if new_shopping_list_id is not None:
+        if new_shopping_list_id is not None and new_shopping_list_id != item.shoppinglist_id:
             # Look for the Shopping list to update to
             new_shopping_list = ShoppingList.query. \
-                filter_by(id=new_shopping_list_id).first()
+                filter_by(id=new_shopping_list_id).filter_by(owner_id=g.user.id).first()
 
             if new_shopping_list is not None:
                 # User has that Shopping List Now update the item
                 item.update_item(name=new_name, price=price,
                                  quantity=quantity,
                                  shoppinglist=new_shopping_list)
+                return make_json_response(200, "Item " + "'" + item.name + "'",
+                                          " Successfully Updated")
             else:
                 return make_json_response(404, "The new Shopping List with ID " +
                                           "'" +
                                           str(new_shopping_list_id) +
                                           "'",
                                           " Does not Exist")
+        else:
+            return make_json_response(200, "Item " + "'" + item.name + "'",
+                                      " Belongs to Shopping list "
+                                      + str(new_shopping_list_id) + " Already")
 
 
 @ns.route("/shoppinglist_items/<id>")

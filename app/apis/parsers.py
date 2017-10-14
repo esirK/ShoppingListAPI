@@ -28,8 +28,8 @@ update_shoppinglist_parser.add_argument('id', type=str, required=True,
                                         help='Shoppinglist Not Provided')
 update_shoppinglist_parser.add_argument('new_name', type=str,
                                         help='New Shoppinglist Name')
-shoppinglist_parser.add_argument('description', type=str,
-                                 help='Shoppinglist description')
+update_shoppinglist_parser.add_argument('description', type=str,
+                                        help='Shoppinglist description')
 
 share_shoppinglist_parser = reqparse.RequestParser()
 share_shoppinglist_parser.add_argument('id', type=str, required=True,
@@ -49,19 +49,18 @@ item_parser.add_argument('price', required=True,
                          help='Item Price has to be an Number')
 item_parser.add_argument('quantity', required=True,
                          help='Item Quantity has to be an Number')
-item_parser.add_argument('shopping_list_id', type=int, required=True,
-                         help='Shoppinglist(id) to add item to Required')
+item_parser.add_argument('shoppinglist_id', type=int, required=True,
+                         help='A Shoppinglist id(Integer) is Required')
 
 delete_shoppinglist_item_parser = reqparse.RequestParser()
 delete_shoppinglist_item_parser.add_argument('id', type=int, required=True,
                                              help='ID of Shoppinglist Item to delete Required')
 
-
 update_shoppinglist_item_parser = reqparse.RequestParser()
-update_shoppinglist_item_parser.add_argument('price', type=int, required=True,
-                                             help='Item Price has to be an Number')
-update_shoppinglist_item_parser.add_argument('quantity', type=int, required=True,
-                                             help='Item Quantity has to be an Number')
+update_shoppinglist_item_parser.add_argument('price', type=str,
+                                             help='Item Price has to be present and a Number')
+update_shoppinglist_item_parser.add_argument('quantity', type=str,
+                                             help='Item Quantity has to be present and a Number')
 
 update_shoppinglist_item_parser.add_argument('id', type=str, required=True,
                                              help='Item Id required')

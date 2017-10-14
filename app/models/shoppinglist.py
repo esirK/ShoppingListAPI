@@ -12,7 +12,7 @@ class ShoppingList(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     shared = db.Column(db.BOOLEAN, default=False)
     shared_by = db.Column(db.String(64))
-    items = db.relationship(Item, backref='container', lazy='dynamic')
+    items = db.relationship(Item, backref='shoppinglist', lazy='dynamic')
     created_on = db.Column(db.DateTime(), default=datetime.utcnow)
     modified_on = db.Column(db.DateTime(), default=datetime.utcnow,
                             onupdate=datetime.utcnow)

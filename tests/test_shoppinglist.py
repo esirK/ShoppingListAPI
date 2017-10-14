@@ -36,7 +36,6 @@ class TestShoppingList(BaseTest):
         self.assertEqual(2, len(json.loads(response.data)))
 
         x = json.loads(response.data)
-
         self.assertEqual(1, len(x[0]['items']))
 
     def test_user_can_query_for_a_shopping_list(self):

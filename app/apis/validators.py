@@ -1,11 +1,11 @@
-import ast
-import numbers
 import re
 
 from flask import jsonify
 
 
 def name_validalidatior(name, context):
+    if name is None:
+        name = "None"
     """Method used to validate various names"""
     if len(name.strip()) == 0 or not re.match("^[-a-zA-Z0-9_\\s]*$", name):
         response = {
@@ -21,8 +21,7 @@ def name_validalidatior(name, context):
 
 
 def price_quantity_validator(value, name):
-    value = ast.literal_eval(value)
-    if not isinstance(value, numbers.Number):
+    if not validate_floats(value):
         response = {
             "errors": {
                 name: "Item " + name + " has to be an Number"
@@ -60,3 +59,31 @@ def validate_ints(value):
         return True
     except ValueError:
         return False
+
+
+def validate_floats(value):
+    if value is None:
+        value = "0.0"
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+
+def validate_values(name, price, quantity, shopping_list):
+    invalid_name = name_validalidatior(name, "Shopping List Item")
+    if invalid_name:
+        return invalid_name
+
+    invalid_price = price_quantity_validator(price, "Price")
+    if invalid_price:
+        return invalid_price
+
+    invalid_quantity = price_quantity_validator(quantity, "Quantity")
+    if invalid_quantity:
+        return invalid_quantity
+    if shopping_list is not None:
+        invalid_id = numbers_validator(shopping_list)
+        if invalid_id:
+            return invalid_id

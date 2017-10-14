@@ -44,8 +44,8 @@ shopping_list_display_model = shopping_list_model.clone(
     })
 update_shopping_list_model = ns.model('update_shopping_list_model', {
     'id': fields.String(default="id"),
-    'new_name': fields.String(default="New name"),
     'description': fields.String(default="None"),
+    'new_name': fields.String(default="New name"),
 })
 delete_shopping_list_model = ns.model('delete_shopping_list_model', {
     'id': fields.String(default="id")
