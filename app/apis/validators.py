@@ -14,30 +14,30 @@ def name_validalidatior(name, context):
         }
         return response, 400
     if name.isdigit():
-            response = {
-                "message": "Name shouldn't be Numbers Alone."
-            }
-            return response, 400
+        response = {
+            "message": "Name shouldn't be Numbers Alone."
+        }
+        return response, 400
 
 
 def price_quantity_validator(value, name):
     value = ast.literal_eval(value)
     if not isinstance(value, numbers.Number):
-            response = {
-                "errors": {
-                    name: "Item "+name+" has to be an Number"
-                },
-                "message": "Input payload validation failed"
-            }
-            return response, 400
+        response = {
+            "errors": {
+                name: "Item " + name + " has to be an Number"
+            },
+            "message": "Input payload validation failed"
+        }
+        return response, 400
 
 
 def numbers_validator(value):
     if not str(value).isdigit():
-            response = {
-                "message": "An Invalid id type was provided. Expecting Integers only"
-            }
-            return response, 400
+        response = {
+            "message": "An Invalid id type was provided. Expecting Integers only"
+        }
+        return response, 400
 
 
 def password_validator(password):
@@ -50,3 +50,13 @@ def password_validator(password):
         response = jsonify(response)
         response.status_code = 400
         return response
+
+
+def validate_ints(value):
+    if len(value) > 10:
+        return False
+    try:
+        int(value)
+        return True
+    except ValueError:
+        return False

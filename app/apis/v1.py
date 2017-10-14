@@ -8,7 +8,8 @@ from flask_httpauth import HTTPBasicAuth
 from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_parser, item_parser, \
     update_shoppinglist_parser, update_shoppinglist_item_parser, delete_shoppinglist_parser, \
     delete_shoppinglist_item_parser, paginate_query_parser, share_shoppinglist_parser
-from app.apis.validators import password_validator, name_validalidatior, price_quantity_validator, numbers_validator
+from app.apis.validators import password_validator, name_validalidatior, price_quantity_validator, numbers_validator, \
+    validate_ints
 from app.exceptions import InvalidToken, TokenExpired
 from app.models import ShoppingList, ns, registration_model, login_model, update_model, user_model, \
     shopping_list_model, \
@@ -170,8 +171,8 @@ class ShoppingLists(Resource):
             """
             gets shopping_list(s) of current user specified by search_query
             """
-            shopping_lists = ShoppingList.query.\
-                filter(ShoppingList.name.like(search_query+"%")).\
+            shopping_lists = ShoppingList.query. \
+                filter(ShoppingList.name.like(search_query + "%")). \
                 filter_by(owner_id=g.user.id).all()
             if len(shopping_lists) > 0:
 
@@ -271,6 +272,28 @@ class ShoppingLists(Resource):
         else:
             return make_json_response(404, "Shopping list with ID " + shoppinglist_id,
                                       " Does not exist")
+
+
+@ns.route("/shoppinglists/<id>")
+class SingleShoppingList(Resource):
+    @api.response(200, "ShoppingList Found")
+    @api.response(404, "ShoppingList Does not Exist")
+    @auth.login_required
+    def get(self, id=None):
+        """
+        gets the shopping list with the supplied id
+        """
+        if validate_ints(id):
+            shopping_list = ShoppingList.query.filter_by(id=id) \
+                .filter_by(owner_id=g.user.id).first()
+            if shopping_list is not None:
+                return marshal(shopping_list, shopping_lists_with_items_model)
+            else:
+                return make_json_response(404, "Shopping list with ID " + id,
+                                          " Does not exist")
+        else:
+            return make_json_response(404, "Shopping list with ID " + id,
+                                      " Does not exist. Expecting a digit id")
 
 
 @ns.route("/shoppinglists/share")
