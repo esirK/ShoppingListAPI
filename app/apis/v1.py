@@ -336,6 +336,28 @@ class ShareShoppingLists(Resource):
             return make_json_response(404, "ShoppingList with ID " + shopping_list_id, "Does Not Exist")
 
 
+@ns.route("/shoppinglist_items/<id>")
+class SingleItem(Resource):
+    @api.response(200, "Item Found")
+    @api.response(404, "Item Does Not Exist")
+    @auth.login_required
+    def get(self, id=None):
+        """
+        Returns a single Item with the supplied id
+        """
+        if validate_ints(id):
+            item = Item.query.filter_by(id=id) \
+                .filter_by(owner_id=g.user.id).first()
+            if item is not None:
+                return marshal(item, item_model)
+            else:
+                return make_json_response(404, "Item with ID " + id,
+                                          " Does not exist")
+        else:
+            return make_json_response(404, "Item with ID " + id,
+                                      " Does not exist. Expecting a digit id")
+
+
 @ns.route("/shoppinglist_items")
 class Items(Resource):
     @api.response(201, "Item Added Successfully")
