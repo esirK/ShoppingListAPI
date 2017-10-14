@@ -246,33 +246,6 @@ class ShoppingLists(Resource):
             return make_json_response(404, "Shopping list " + soppinglist_id,
                                       " Does not exist")
 
-    @api.response(200, "ShoppingList Deleted Successfully")
-    @api.response(404, "ShoppingList Does not Exist")
-    @ns.expect(delete_shopping_list_model, validate=True)
-    @auth.login_required
-    def delete(self):
-        """
-        Deletes a shopping list 
-        """
-        args = delete_shoppinglist_parser.parse_args()
-        shoppinglist_id = args.get('id')
-
-        invalid_id = numbers_validator(shoppinglist_id)
-        if invalid_id:
-            return invalid_id
-
-        # Get the shopping list specified and belonging to current user
-        shopping_list = ShoppingList.query.filter_by(id=shoppinglist_id) \
-            .filter_by(owner_id=g.user.id).first()
-        if shopping_list is not None:
-            items = Item.query.filter_by(shoppinglist_id=shopping_list.id).all()
-            delete_shoppinglist(shopping_list, items)
-            return make_json_response(200, "Shopping list" + shopping_list.name,
-                                      " Deleted Successfully")
-        else:
-            return make_json_response(404, "Shopping list with ID " + shoppinglist_id,
-                                      " Does not exist")
-
 
 @ns.route("/shoppinglists/<id>")
 class SingleShoppingList(Resource):
@@ -294,6 +267,30 @@ class SingleShoppingList(Resource):
         else:
             return make_json_response(404, "Shopping list with ID " + id,
                                       " Does not exist. Expecting a digit id")
+
+    @api.response(200, "ShoppingList Deleted Successfully")
+    @api.response(404, "ShoppingList Does not Exist")
+    @auth.login_required
+    def delete(self, id=None):
+        """
+        Deletes a shopping list
+        """
+
+        if not validate_ints(id):
+            return make_json_response(404, "Shopping list with ID " + id,
+                                      " Does not exist. Expecting a digit id")
+
+        # Get the shopping list specified and belonging to current user
+        shopping_list = ShoppingList.query.filter_by(id=id) \
+            .filter_by(owner_id=g.user.id).first()
+        if shopping_list is not None:
+            items = Item.query.filter_by(shoppinglist_id=shopping_list.id).all()
+            delete_shoppinglist(shopping_list, items)
+            return make_json_response(200, "Shopping list" + shopping_list.name,
+                                      " Deleted Successfully")
+        else:
+            return make_json_response(404, "Shopping list with ID " + id,
+                                      " Does not exist")
 
 
 @ns.route("/shoppinglists/share")

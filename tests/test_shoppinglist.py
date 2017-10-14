@@ -114,10 +114,7 @@ class TestShoppingList(BaseTest):
         """
         self.create_shopping_lists("Gaming")
         response = self.client.delete(
-            "/v1/shoppinglists",
-            data=json.dumps({
-                "id": "1"
-            }),
+            "/v1/shoppinglists/1",
             content_type='application/json', headers=self.headers)
         self.assertEqual(200, response.status_code)
 
@@ -126,10 +123,7 @@ class TestShoppingList(BaseTest):
         Test a Logged in User Can not Delete a non existing shopping lists
         """
         response = self.client.delete(
-            "/v1/shoppinglists",
-            data=json.dumps({
-                "id": "900"
-            }),
+            "/v1/shoppinglists/900",
             content_type='application/json', headers=self.headers)
         self.assertEqual(404, response.status_code)
 
@@ -139,10 +133,7 @@ class TestShoppingList(BaseTest):
         """
         self.create_shopping_lists("Morties")
         response = self.client.delete(
-            "/v1/shoppinglists",
-            data=json.dumps({
-                "name": "Morties"
-            }),
+            "/v1/shoppinglists/1",
             content_type='application/json')  # No headers provided
         self.assertEqual(401, response.status_code)
 
