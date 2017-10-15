@@ -37,11 +37,14 @@ Shopping List API is a flask API that allows clients to Interact with the Shoppi
 | /user | POST | Allow a Registered user to login and get user details | FALSE
 | /token | GET | get Authentication token for use on next requests | TRUE
 | /user | PUT | Update user details | TRUE
-| /shoppinglists{q} | GET | Get shopping list *q* or every shopping list if q is missing |TRUE
+| /shoppinglists | GET | Get every shopping list of logged in user|TRUE
+| /shoppinglists/{id} | GET | Get shopping list with {id} of logged in user|TRUE
+| /shoppinglists/{id} | DELETE | Delete shopping list with {id} of logged in user|TRUE
 | /shoppinglists | POST | Create a new shopping list|TRUE
 | /shoppinglists | PUT | Update a shopping list|TRUE
 | /shoppinglists | DELETE | Deletes a shopping list|TRUE
 | /shoppinglists/share | POST | Shares a shopping list with another User|TRUE
 | /shoppinglist_items | POST | Creates a shopping list item|TRUE
+| /shoppinglist_items/{id} | GET | Gets a shopping list item of currently logged in user with id {id}|TRUE
 | /shoppinglist_items | PUT | Updates a shopping list item|TRUE
-| /shoppinglist_items | DELETE | Deletes a shopping list item|TRUE
+| /shoppinglist_items/{id} | DELETE | Deletes a shopping list item|TRUE
