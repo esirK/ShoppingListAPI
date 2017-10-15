@@ -4,6 +4,7 @@ from flask import g, jsonify, Blueprint, request
 
 from flask_restplus import Resource, Api, marshal
 from flask_httpauth import HTTPBasicAuth
+from sqlalchemy import func
 
 from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_parser, item_parser, \
     update_shoppinglist_parser, update_shoppinglist_item_parser, \
@@ -172,7 +173,7 @@ class ShoppingLists(Resource):
             gets shopping_list(s) of current user specified by search_query
             """
             shopping_lists = ShoppingList.query. \
-                filter(ShoppingList.name.like(search_query + "%")). \
+                filter(func.lower(ShoppingList.name).like("%" + func.lower(search_query) + "%")). \
                 filter_by(owner_id=g.user.id).all()
             if len(shopping_lists) > 0:
 
