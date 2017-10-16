@@ -357,7 +357,9 @@ class Items(Resource):
         shopping_list_id = args.get('shoppinglist_id')
         # get shoppinglist from db
 
-        validate_values(name, price, quantity, shopping_list_id)
+        invalid = validate_values(name, price, quantity, shopping_list_id)
+        if invalid:
+            return invalid
 
         shopping_list = ShoppingList.query.filter_by(id=shopping_list_id) \
             .filter_by(owner_id=g.user.id).first()
