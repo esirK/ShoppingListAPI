@@ -24,8 +24,7 @@ shoppinglist_parser.add_argument('description', type=str, required=True,
                                  help='Shoppinglist description Not Provided')
 
 update_shoppinglist_parser = reqparse.RequestParser()
-update_shoppinglist_parser.add_argument('id', type=str, required=True,
-                                        help='Shoppinglist Not Provided')
+
 update_shoppinglist_parser.add_argument('new_name', type=str,
                                         help='New Shoppinglist Name')
 update_shoppinglist_parser.add_argument('description', type=str,
@@ -46,9 +45,9 @@ item_parser.add_argument('name', type=str, required=True,
                          help='Item Name')
 
 item_parser.add_argument('price', required=True,
-                         help='Item Price has to be an Number')
+                         help='Item Price has to be Present and a Number')
 item_parser.add_argument('quantity', required=True,
-                         help='Item Quantity has to be an Number')
+                         help='Item Quantity has to be Present and a Number')
 item_parser.add_argument('shoppinglist_id', type=int, required=True,
                          help='A Shoppinglist id(Integer) is Required')
 

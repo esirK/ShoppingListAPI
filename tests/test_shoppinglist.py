@@ -84,9 +84,8 @@ class TestShoppingList(BaseTest):
         """
         self.create_shopping_lists("Movies")
         response = self.client.put(
-            "/v1/shoppinglists",
+            "/v1/shoppinglists/1",
             data=json.dumps({
-                "id": "1",
                 "new_name": "Series",
                 "description": "None"
             }),
@@ -98,9 +97,9 @@ class TestShoppingList(BaseTest):
         Test a Logged in User can not Update a non existing shopping lists
         """
         response = self.client.put(
-            "/v1/shoppinglists",
+            "/v1/shoppinglists/100",   # Id that does not exist
+
             data=json.dumps({
-                "id": "100",  # Id that does not exist
                 "new_name": "I Exist",
                 "description": "None"
             }),

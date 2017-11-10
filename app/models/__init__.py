@@ -43,7 +43,6 @@ shopping_list_display_model = shopping_list_model.clone(
         'shared_by': fields.String(default="nobody")
     })
 update_shopping_list_model = ns.model('update_shopping_list_model', {
-    'id': fields.String(default="id"),
     'description': fields.String(default="None"),
     'new_name': fields.String(default="New name"),
 })

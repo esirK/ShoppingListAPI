@@ -34,7 +34,7 @@ api = Api(bp, version='1.0', title='ShoppingList API',
 
 @bp.app_errorhandler(404)
 def page_not_found(e):
-    return jsonify({"message": "not found"}), 404
+    return jsonify({"message": "Url not found"}), 404
 
 
 @auth.verify_password
@@ -113,9 +113,9 @@ class AppUser(Resource):
             if user.check_password(password):
                 g.user = user
                 token = g.user.generate_auth_token(configurations=configuration,
-                                                   expiration=600)
+                                                   expiration=1200)
                 return jsonify({'token': token.decode('ascii'),
-                                'duration': 600})
+                                'duration': 1200})
             else:
                 return make_json_response(401, "Wrong Credentials ", " Provided")
 
@@ -179,8 +179,8 @@ class ShoppingLists(Resource):
 
                 return marshal(shopping_lists, shopping_lists_with_items_model)
             else:
-                return make_json_response(404, "Shopping List " + search_query,
-                                          " Does Not Exist")
+                return make_json_response(404, "Shopping Lists with '" + search_query,
+                                          "' Does Not Exist")
 
         shopping_lists = ShoppingList.query.filter_by(owner_id=g.user.id). \
             paginate(page, limit, True).items
@@ -213,40 +213,6 @@ class ShoppingLists(Resource):
             return make_json_response(409, "Shopping list " + name,
                                       " Already Exists")
 
-    @api.response(200, "ShoppingList Updated Successfully")
-    @api.response(404, "ShoppingList Does not Exist")
-    @ns.expect(update_shopping_list_model, validate=True)
-    @auth.login_required
-    def put(self):
-        """
-        Updates a shopping list 
-        Both the "new_name" and "description" fields can be added
-        according to which the user wants to update
-        """
-        args = update_shoppinglist_parser.parse_args()
-        soppinglist_id = args.get('id')
-        new_name = args.get('new_name')
-        description = args.get('description')
-
-        invalid_id = numbers_validator(soppinglist_id)
-        if invalid_id:
-            return invalid_id
-
-        # Get shopping list
-        shopping_list = ShoppingList.query.filter_by(id=soppinglist_id).first()
-        if shopping_list is not None:
-            # We got the shopping list. Now Update it
-            if new_name is not None or description is not None:
-                update_shopping_list(shopping_list, new_name, description)
-                return make_json_response(200, "Shopping list " + shopping_list.name,
-                                          " Updated Successfully")
-            else:
-                return make_json_response(200, "Nothing was provided ", "to Updated")
-
-        else:
-            return make_json_response(404, "Shopping list " + soppinglist_id,
-                                      " Does not exist")
-
 
 @ns.route("/shoppinglists/<id>")
 class SingleShoppingList(Resource):
@@ -258,16 +224,51 @@ class SingleShoppingList(Resource):
         gets the shopping list with the supplied id
         """
         if validate_ints(id):
-            shopping_list = ShoppingList.query.filter_by(id=id) \
-                .filter_by(owner_id=g.user.id).first()
+            shopping_list = ShoppingList.query.filter_by(id=id).first()
             if shopping_list is not None:
-                return marshal(shopping_list, shopping_lists_with_items_model)
+                if shopping_list.owner_id == g.user.id:
+                    return marshal(shopping_list, shopping_lists_with_items_model)
+                else:
+                    return make_json_response(403, "You Are not Authorised to Access Shopping List '" + id,
+                                              "'")
             else:
-                return make_json_response(404, "Shopping list with ID " + id,
-                                          " Does not exist")
+                return make_json_response(404, "Shopping List'" + id,
+                                          "' Does Not Exist")
         else:
             return make_json_response(404, "Shopping list with ID " + id,
                                       " Does not exist. Expecting a digit id")
+
+    @api.response(200, "ShoppingList Updated Successfully")
+    @api.response(404, "ShoppingList Does not Exist")
+    @ns.expect(update_shopping_list_model, validate=True)
+    @auth.login_required
+    def put(self, id):
+        """
+        Updates a shopping list
+        Both the "new_name" and "description" fields can be added
+        according to which the user wants to update
+        """
+        args = update_shoppinglist_parser.parse_args()
+        new_name = args.get('new_name')
+        description = args.get('description')
+
+        if not validate_ints(id):
+            return make_json_response(404, "Shopping list with ID " + id,
+                                      " Does not exist. Expecting a digit id")
+        # Get shopping list
+        shopping_list = ShoppingList.query.filter_by(id=id).first()
+        if shopping_list is not None:
+            # We got the shopping list. Now Update it
+            if new_name is not None or description is not None:
+                update_shopping_list(shopping_list, new_name, description)
+                return make_json_response(200, "Shopping list " + shopping_list.name,
+                                          " Updated Successfully")
+            else:
+                return make_json_response(200, "Nothing was provided ", "to Updated")
+
+        else:
+            return make_json_response(404, "Shopping list With ID '" + id,
+                                      "' Does not exist")
 
     @api.response(200, "ShoppingList Deleted Successfully")
     @api.response(404, "ShoppingList Does not Exist")
@@ -412,7 +413,7 @@ class Items(Resource):
             return make_json_response(200, "Item " + "'" + item.name + "'",
                                       " Successfully Updated")
         if item is None:
-            return make_json_response(404, "Item with id " + "'"+str(item_id)+"'",
+            return make_json_response(404, "Item with id " + "'" + str(item_id) + "'",
                                       "Does not Exist")
 
         # Check if user wants to update the items shopping list
