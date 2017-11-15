@@ -44,7 +44,7 @@ class User(db.Model):
 
     def generate_auth_token(self, expiration=600, configurations=""):
         s = Serializer(config[configurations].SECRET_KEY, expires_in=expiration)
-        return s.dumps({'id': self.id})
+        return s.dumps({'id': self.id, 'username': self.username})
 
     @staticmethod
     def verify_auth_token(token, configuration):
