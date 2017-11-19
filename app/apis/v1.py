@@ -47,6 +47,7 @@ def verify_password(email_or_token, password):
     :return: True or False 
     """
     # try authenticating by token
+    print("Got Auth", email_or_token)
     try:
         user = User.verify_auth_token(email_or_token, configuration=configuration)
     except (InvalidToken, TokenExpired):
@@ -207,8 +208,9 @@ class ShoppingLists(Resource):
             return invalid_name
 
         if add_shopping_list(g.user, name=name, description=description):
+            shopping_lists = ShoppingList.query.filter_by(owner_id=g.user.id).all()
             return make_json_response(201, "Shopping list " + name,
-                                      " Created Successfully")
+                                      " Created Successfully", data=shopping_lists)
         else:
             return make_json_response(409, "Shopping list " + name,
                                       " Already Exists")
@@ -483,8 +485,12 @@ class SingleItem(Resource):
                                       " Does Not Exist.")
 
 
-def make_json_response(status_code, name_obj, message):
-    response = jsonify({'message': name_obj + " " + message})
+def make_json_response(status_code, name_obj, message, data=None):
+    if data is not None:
+        response = jsonify({'message': name_obj + " " + message, 'data': marshal(data,
+                                                                                 shopping_lists_with_items_model)})
+    else:
+        response = jsonify({'message': name_obj + " " + message})
     response.status_code = status_code
     return response
 
