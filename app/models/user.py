@@ -1,4 +1,5 @@
 from datetime import datetime
+from time import time
 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired, BadSignature
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -44,7 +45,7 @@ class User(db.Model):
 
     def generate_auth_token(self, expiration=600, configurations=""):
         s = Serializer(config[configurations].SECRET_KEY, expires_in=expiration)
-        return s.dumps({'id': self.id, 'username': self.username})
+        return s.dumps({'id': self.id, 'username': self.username, 'expires_at': int((time())*1000) + expiration*1000})
 
     @staticmethod
     def verify_auth_token(token, configuration):
