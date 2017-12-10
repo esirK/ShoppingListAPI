@@ -78,9 +78,9 @@ def update_shopping_list(shoppinglist, name, description):
     """
         Updates Shopping List Data
         """
-    if description is not None:
+    if description is not '':
         shoppinglist.description = description
-    if name is not None:
+    if name is not '':
         shoppinglist.name = name
     db.session.commit()
 

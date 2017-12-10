@@ -3,9 +3,10 @@ import re
 from flask import jsonify
 
 
-def name_validalidatior(name, context):
-    if name is None:
-        name = "None"
+def name_validalidatior(name, context, update=None):
+    if update is not None:
+        if name is '':
+            name = "None"
     """Method used to validate various names"""
     if len(name.strip()) == 0 or not re.match("^[-a-zA-Z0-9_\\s]*$", name):
         response = {
@@ -20,7 +21,10 @@ def name_validalidatior(name, context):
         return response, 400
 
 
-def price_quantity_validator(value, name):
+def price_quantity_validator(value, name, update=None):
+    if update is not None:
+        if value is '':
+            value = 0.0
     if not validate_floats(value):
         response = {
             "errors": {
@@ -31,7 +35,10 @@ def price_quantity_validator(value, name):
         return response, 400
 
 
-def numbers_validator(value):
+def numbers_validator(value, update=None):
+    if update is not None:
+        if value is '':
+            value = 0
     if not str(value).isdigit():
         response = {
             "message": "An Invalid id type was provided. Expecting Integers only"
@@ -71,19 +78,20 @@ def validate_floats(value):
         return False
 
 
-def validate_values(name, price, quantity, shopping_list):
-    invalid_name = name_validalidatior(name, "Shopping List Item")
+def validate_values(name, price, quantity, shopping_list, update=None):
+    errors = {}
+    invalid_name = name_validalidatior(name, "Shopping List Item", update)
     if invalid_name:
-        return invalid_name
-
-    invalid_price = price_quantity_validator(price, "Price")
+        errors.update({'name': invalid_name})
+    invalid_price = price_quantity_validator(price, "Price", update)
     if invalid_price:
-        return invalid_price
+        errors.update({'price': invalid_price})
 
-    invalid_quantity = price_quantity_validator(quantity, "Quantity")
+    invalid_quantity = price_quantity_validator(quantity, "Quantity", update)
     if invalid_quantity:
-        return invalid_quantity
+        errors.update({'quantity': invalid_quantity})
     if shopping_list is not None:
         invalid_id = numbers_validator(shopping_list)
         if invalid_id:
-            return invalid_id
+            errors.update({'id': invalid_id})
+    return errors

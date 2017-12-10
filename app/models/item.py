@@ -30,11 +30,11 @@ class Item(db.Model):
 
     def update_item(self, name, price, quantity, shoppinglist=None):
         # updates self
-        if name is not None:
+        if name is not '':
             self.name = name
-        if price is not None:
+        if price is not '':
             self.price = price
-        if quantity is not None:
+        if quantity is not '':
             self.quantity = quantity
         if shoppinglist is not None:
             self.shoppinglist_id = shoppinglist.id

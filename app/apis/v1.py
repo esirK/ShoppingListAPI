@@ -261,10 +261,11 @@ class SingleShoppingList(Resource):
         shopping_list = ShoppingList.query.filter_by(id=id).first()
         if shopping_list is not None:
             # We got the shopping list. Now Update it
-            if new_name is not None or description is not None:
+            if new_name is not '' or description is not '':
                 update_shopping_list(shopping_list, new_name, description)
+                shopping_lists = ShoppingList.query.filter_by(owner_id=g.user.id).all()
                 return make_json_response(200, "Shopping list " + shopping_list.name,
-                                          " Updated Successfully")
+                                          " Updated Successfully", data=shopping_lists)
             else:
                 return make_json_response(200, "Nothing was provided ", "to Updated")
 
@@ -290,8 +291,9 @@ class SingleShoppingList(Resource):
         if shopping_list is not None:
             items = Item.query.filter_by(shoppinglist_id=shopping_list.id).all()
             delete_shoppinglist(shopping_list, items)
+            shopping_lists = ShoppingList.query.filter_by(owner_id=g.user.id).all()
             return make_json_response(200, "Shopping list " + shopping_list.name,
-                                      " Deleted Successfully")
+                                      " Deleted Successfully", data=shopping_lists)
         else:
             return make_json_response(404, "Shopping list with ID " + id,
                                       " Does not exist")
@@ -362,7 +364,9 @@ class Items(Resource):
 
         invalid = validate_values(name, price, quantity, shopping_list_id)
         if invalid:
-            return invalid
+            response = jsonify({'error': invalid})
+            response.status_code = 400
+            return response
 
         shopping_list = ShoppingList.query.filter_by(id=shopping_list_id) \
             .filter_by(owner_id=g.user.id).first()
@@ -394,26 +398,30 @@ class Items(Resource):
         quantity = args.get('quantity')
         new_shopping_list_id = args.get('new_shopping_list_id')
 
-        if new_name is None and price is None and quantity is None \
-                and new_shopping_list_id is None:
+        if new_name is '' and price is '' and quantity is '':
             return make_json_response(404, "Nothing Provided ",
                                       " For Updating")
         if not validate_ints(item_id):
             return make_json_response(404, "Shoppinglist Item ID " +
                                       "'" + str(item_id) + "'",
                                       " Is an Invalid Id")
-        invalid_values = validate_values(new_name, price, quantity, new_shopping_list_id)
-        if invalid_values:
-            return invalid_values
+        if new_name is not '' or price is not '' or quantity is not '':
+            invalid_values = validate_values(new_name, price, quantity, new_shopping_list_id, update=True)
+            print('Look also', invalid_values)
+            if invalid_values:
+                return invalid_values
 
         item = Item.query.filter_by(id=item_id).first()
-
+        item2 = Item.query.filter_by(name=new_name).first()
+        if item2:
+            return make_json_response(409, "Item " + new_name, " Already exist")
         if item is not None and new_shopping_list_id is None:
             # Got The Item We supposed to Update
             item.update_item(name=new_name, price=price,
                              quantity=quantity)
+            items = ShoppingList.query.filter_by(id=item.shoppinglist_id).all()
             return make_json_response(200, "Item " + "'" + item.name + "'",
-                                      " Successfully Updated")
+                                      " Successfully Updated", data=items)
         if item is None:
             return make_json_response(404, "Item with id " + "'" + str(item_id) + "'",
                                       "Does not Exist")
