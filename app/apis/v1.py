@@ -114,15 +114,15 @@ class AppUser(Resource):
             if user.check_password(password):
                 g.user = user
                 token = g.user.generate_auth_token(configurations=configuration,
-                                                   expiration=1200)
+                                                   expiration=3600)
                 return jsonify({'token': token.decode('ascii'),
-                                'duration': 1200})
+                                'duration': 3600})
             else:
                 return make_json_response(401, "Wrong Credentials ", " Provided")
 
         else:
-            return make_json_response(401, "No User Registered With " + email,
-                                      " Exists")
+            return make_json_response(401, "Wrong Credentials  ",
+                                      " Provided")
 
     @ns.expect(update_model, validate=True)
     @auth.login_required
@@ -169,6 +169,8 @@ class ShoppingLists(Resource):
         search_query = args.get("q")
         page = args.get('page', 1)
         limit = args.get("limit", 10)
+        if not isinstance(page, int):
+            jsonify({"message": "Url not found"}), 404
         if search_query:
             """
             gets shopping_list(s) of current user specified by search_query
@@ -328,12 +330,12 @@ class ShareShoppingLists(Resource):
                 if add_shared_shopping_list(shopping_list, share_with):
                     share(shopping_list, True, g.user.email)
                     return make_json_response(200, "Shopping List " +
-                                              shopping_list.name,
+                                              '`'+shopping_list.name+'`',
                                               " Shared Successfully")
                 else:
-                    return make_json_response(200, "Shopping List With ID " +
-                                              shopping_list_id,
-                                              " Not Shared")
+                    return make_json_response(200, "Shopping List " +
+                                              '`'+shopping_list.name+'`',
+                                              " Not Shared. User Already has it.")
             else:
                 # person don't exist or you are the person
                 return make_json_response(404, "Email: " + email,
@@ -413,8 +415,9 @@ class Items(Resource):
 
         item = Item.query.filter_by(id=item_id).first()
         item2 = Item.query.filter_by(name=new_name).first()
-        if item2:
-            return make_json_response(409, "Item " + new_name, " Already exist")
+        if item2 is not None:
+            if item2.id != item.id:
+                return make_json_response(409, "Item " + new_name, " Already exist")
         if item is not None and new_shopping_list_id is None:
             # Got The Item We supposed to Update
             item.update_item(name=new_name, price=price,
