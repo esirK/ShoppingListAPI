@@ -33,7 +33,8 @@ def add_shopping_list(user, name, description):
     """
         Adds a ShoppingList to this user account
         """
-    shopping_lst = ShoppingList.query.filter_by(name=name) \
+    name = name.strip()
+    shopping_lst = ShoppingList.query.filter(ShoppingList.name.ilike(name)) \
         .filter_by(owner_id=user.id).first()
     if shopping_lst:
         # user has the shopping list
