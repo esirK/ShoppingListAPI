@@ -58,6 +58,18 @@ def password_validator(password):
         return response
 
 
+def email_validator(email):
+    match = re.match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$', email)
+    if match is None:
+        print('WTF ', email)
+        response = {
+            'message': 'Email is Invalid'
+        }
+        response = jsonify(response)
+        response.status_code = 400
+        return response
+
+
 def validate_ints(value):
     if len(value) > 10:
         return False

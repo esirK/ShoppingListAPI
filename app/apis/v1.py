@@ -10,7 +10,7 @@ from app.apis.parsers import parser, master_parser, update_parser, shoppinglist_
     update_shoppinglist_parser, update_shoppinglist_item_parser, \
     paginate_query_parser, share_shoppinglist_parser
 from app.apis.validators import password_validator, name_validalidatior, numbers_validator, \
-    validate_ints, validate_values
+    validate_ints, validate_values, email_validator
 from app.exceptions import InvalidToken, TokenExpired
 from app.models import ShoppingList, ns, registration_model, login_model, update_model, user_model, \
     shopping_list_model, \
@@ -80,6 +80,9 @@ class AppUsers(Resource):
 
         if password_validator(password):
             return password_validator(password)
+
+        if email_validator(email):
+            return email_validator(email)
 
         if User.query.filter_by(email=email).first() is not None:
             return make_json_response(409, email, " Already Exists")  # existing user
