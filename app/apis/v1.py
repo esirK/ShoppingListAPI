@@ -140,11 +140,12 @@ class AppUser(Resource):
         args = update_parser.parse_args()
         username = args['name']
         password = args['password']
-        invalid_name = name_validalidatior(username, "Users")
-        if invalid_name:
-            return invalid_name
+        if username != '':
+            invalid_name = name_validalidatior(username, "Users")
+            if invalid_name:
+                return invalid_name
 
-        if username == "None" and password == "None":
+        if len(username.strip()) == 0 and len(password.strip()) == 0:
             return {
                 "message": "No Updates Were Made"
             }

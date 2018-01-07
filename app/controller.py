@@ -22,9 +22,9 @@ def update_user(user, username, password):
     """
         Updates A user Data. For account management
         """
-    if password != "None":
+    if len(password.strip()) != 0:
         user.set_password(password)
-    if username != "None":
+    if len(username.strip()) != 0:
         user.username = username
     db.session.commit()
 
